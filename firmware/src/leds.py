@@ -17,12 +17,12 @@ APIs to control the RGB LED in the button that connects to the
 Vision/Voice Bonnet, and the privacy LED with the Vision Kit.
 
 These APIs are **not compatible** with the Voice HAT (V1 Voice Kit).
-To control the Voice HAT's button LED, instead use :class:`aiy.board.Led`.
+To control the Voice HAT's button LED, instead use :class:`src.board.Led`.
 
 For example, here's how to blink the button's red light::
 
     import time
-    from aiy.leds import Leds, Color
+    from src.leds import Leds, Color
 
     with Leds() as leds:
         for _ in range(4):
@@ -36,13 +36,14 @@ For more examples, see `leds_example.py
 
 These APIs are only for the RGB LED in the button and the Vision Kit's privacy LED.
 To control LEDs you've attached to the bonnet's GPIO pins or the LEDs named
-``LED_1`` and ``LED_2`` on the Vision/Voice Bonnet, instead use :mod:`aiy.pins`.
+``LED_1`` and ``LED_2`` on the Vision/Voice Bonnet, instead use :mod:`src.pins`.
 """
 
 import math
 import os
 
-_DEVICE_PATH = '/sys/class/leds/ktd202x:led1/device/'
+_DEVICE_PATH = "/sys/class/leds/ktd202x:led1/device/"
+
 
 def _tflash_reg(duration_ms):
     if duration_ms <= 128:
@@ -63,17 +64,19 @@ def _trise_tfall_reg(duration_ms):
 
 
 def _write(path, data):
-    with open(path, 'w') as f:
+    with open(path, "w") as f:
         f.write(str(data))
 
 
 def _device_file(prop):
     return os.path.join(_DEVICE_PATH, prop)
 
+
 class Color:
     """Defines colors as RGB tuples that can be used as color values with
     :class:`Leds`.
     """
+
     @staticmethod
     def blend(color_a, color_b, alpha):
         """Creates a color that is a blend between two colors.
@@ -89,16 +92,21 @@ class Color:
         Returns:
             An RGB tuple.
         """
-        return tuple([math.ceil(alpha * color_a[i] + (1.0 - alpha) * color_b[i]) for i in range(3)])
+        return tuple(
+            [
+                math.ceil(alpha * color_a[i] + (1.0 - alpha) * color_b[i])
+                for i in range(3)
+            ]
+        )
 
-    BLACK  = (0x00, 0x00, 0x00)
-    RED    = (0xFF, 0x00, 0x00)
-    GREEN  = (0x00, 0xFF, 0x00)
+    BLACK = (0x00, 0x00, 0x00)
+    RED = (0xFF, 0x00, 0x00)
+    GREEN = (0x00, 0xFF, 0x00)
     YELLOW = (0xFF, 0xFF, 0x00)
-    BLUE   = (0x00, 0x00, 0xFF)
+    BLUE = (0x00, 0x00, 0xFF)
     PURPLE = (0xFF, 0x00, 0xFF)
-    CYAN   = (0x00, 0xFF, 0xFF)
-    WHITE  = (0xFF, 0xFF, 0xFF)
+    CYAN = (0x00, 0xFF, 0xFF)
+    WHITE = (0xFF, 0xFF, 0xFF)
 
 
 class Pattern:
@@ -127,10 +135,10 @@ class Pattern:
 
     def __init__(self, period_ms, on_percent=0.5, rise_ms=0, fall_ms=0):
         if on_percent < 0 or on_percent > 0.996:
-            raise ValueError('on_percent must be in the range [0..0.996]')
+            raise ValueError("on_percent must be in the range [0..0.996]")
 
         if period_ms < 0 or rise_ms < 0 or fall_ms < 0:
-            raise ValueError('durations must be non-negative')
+            raise ValueError("durations must be non-negative")
 
         self.period_ms = period_ms
         self.on_percent = on_percent
@@ -167,6 +175,7 @@ class Leds:
     """Class to control the KTD LED driver chip in the button used with the
     Vision and Voice Bonnet.
     """
+
     class Channel:
         """Defines the configuration for each channel in the KTD LED driver.
 
@@ -179,16 +188,17 @@ class Leds:
                 :attr:`PATTERN`.
             brightness: A value between 0 and 255.
         """
+
         OFF = 0
         ON = 1
         PATTERN = 2
 
         def __init__(self, state, brightness):
             if state not in (self.ON, self.OFF, self.PATTERN):
-                raise ValueError('state must be OFF, ON, or PATTERN')
+                raise ValueError("state must be OFF, ON, or PATTERN")
 
             if brightness < 0 or brightness > 255:
-                raise ValueError('brightness must be in the range [0..255]')
+                raise ValueError("brightness must be in the range [0..255]")
 
             self.state = state
             self.brightness = brightness
@@ -209,7 +219,7 @@ class Leds:
             A dictionary of 3 :class:`Channel` objects, representing red, green,
             and blue values.
         """
-        return {i + 1 : Leds.Channel(state, rgb[i]) for i in range(3)}
+        return {i + 1: Leds.Channel(state, rgb[i]) for i in range(3)}
 
     @staticmethod
     def rgb_off():
@@ -303,7 +313,7 @@ class Leds:
 
     def __init__(self, reset=True):
         if not Leds.installed():
-            raise RuntimeError('Leds are not available on this board.')
+            raise RuntimeError("Leds are not available on this board.")
 
         self._pattern = None
         if reset:
@@ -311,7 +321,7 @@ class Leds:
 
     def reset(self):
         """Resets the LED driver to a clean state."""
-        _write(_device_file('reset'), 1)
+        _write(_device_file("reset"), 1)
 
     @property
     def pattern(self):
@@ -329,12 +339,13 @@ class Leds:
     @pattern.setter
     def pattern(self, value):
         self._pattern = value
-        command = 'tflash=%d;pwm1=%d;trise=%d;tfall=%d;' % (
+        command = "tflash=%d;pwm1=%d;trise=%d;tfall=%d;" % (
             _tflash_reg(value.period_ms),
             _pwm1_reg(value.on_percent),
             _trise_tfall_reg(value.rise_ms),
-            _trise_tfall_reg(value.fall_ms))
-        _write(_device_file('registers'), command)
+            _trise_tfall_reg(value.fall_ms),
+        )
+        _write(_device_file("registers"), command)
 
     def update(self, channels):
         """Changes the state of an LED. Takes a dictionary of LED channel
@@ -360,14 +371,14 @@ class Leds:
                 Use the ``rgb_`` and ``privacy_`` methods to create a
                 dictionary.
         """
-        command = ''
+        command = ""
         for index, channel in channels.items():
             if channel.brightness is not None:
-                command += 'led%d=%d;' % (index, channel.brightness)
+                command += "led%d=%d;" % (index, channel.brightness)
             if channel.state is not None:
-                command += 'ch%d_enable=%d;' % (index, channel.state)
+                command += "ch%d_enable=%d;" % (index, channel.state)
         if command:
-            _write(_device_file('registers'), command)
+            _write(_device_file("registers"), command)
 
     def __enter__(self):
         return self

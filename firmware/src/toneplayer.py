@@ -17,7 +17,7 @@ A simple melodic music player for the piezo buzzer.
 
 This API is designed for the Vision Kit, but has no dependency on the Vision
 Bonnet, so may be used without it. It only requires a piezo buzzer connected to
-:any:`aiy.pins.BUZZER_GPIO_PIN`.
+:any:`src.pins.BUZZER_GPIO_PIN`.
 """
 
 import re
@@ -74,14 +74,14 @@ class Note(Rest):
             tuning: the frequency of the natural A note, in Hz.
         """
 
-        NOTES = 'CcDdEFfGgAaB'
-        base = NOTES.find('A')
+        NOTES = "CcDdEFfGgAaB"
+        base = NOTES.find("A")
 
-        octave_delta = self.octave - Note.BASE_OCTAVE   # 0
-        octave_halfsteps = octave_delta * 12            # 0
-        offset = NOTES.find(self.name) - base           # -1
-        halfsteps = octave_halfsteps + offset           # -2
-        freq = tuning * (1.059463 ** halfsteps)
+        octave_delta = self.octave - Note.BASE_OCTAVE  # 0
+        octave_halfsteps = octave_delta * 12  # 0
+        offset = NOTES.find(self.name) - base  # -1
+        halfsteps = octave_halfsteps + offset  # -2
+        freq = tuning * (1.059463**halfsteps)
 
         return freq
 
@@ -135,11 +135,11 @@ class TonePlayer:
     NOTE_RE = re.compile(r"(?P<name>[A-Ga-g])(?P<octave>[1-8])?(?P<length>[whqes])?")
 
     PERIOD_MAP = {
-        'w': Rest.WHOLE,
-        'h': Rest.HALF,
-        'q': Rest.QUARTER,
-        'e': Rest.EIGHTH,
-        's': Rest.SIXTEENTH
+        "w": Rest.WHOLE,
+        "h": Rest.HALF,
+        "q": Rest.QUARTER,
+        "e": Rest.EIGHTH,
+        "s": Rest.SIXTEENTH,
     }
 
     def __init__(self, gpio, bpm=120, debug=False):
@@ -163,24 +163,24 @@ class TonePlayer:
         """Parses a single note/rest string into its given class instance."""
         result = TonePlayer.REST_RE.match(note_str)
         if result is not None:
-            length = TonePlayer.PERIOD_MAP[result.group('length')]
+            length = TonePlayer.PERIOD_MAP[result.group("length")]
             return Rest(self.bpm, length)
 
         result = TonePlayer.NOTE_RE.match(note_str)
         if result is not None:
-            name = result.group('name')
+            name = result.group("name")
 
             octave = 4
-            if result.group('octave') is not None:
-                octave = int(result.group('octave'))
+            if result.group("octave") is not None:
+                octave = int(result.group("octave"))
                 if octave > 8:
                     octave = 8
                 if octave < 1:
                     octave = 1
 
             length = Rest.QUARTER
-            if result.group('length') is not None:
-                length = TonePlayer.PERIOD_MAP[result.group('length')]
+            if result.group("length") is not None:
+                length = TonePlayer.PERIOD_MAP[result.group("length")]
 
             return Note(name, octave, self.bpm, length)
 
@@ -193,9 +193,11 @@ class TonePlayer:
             for note in parsed_notes:
                 if isinstance(note, Note):
                     if self.debug:
-                        print(note.name + str(note.octave),
-                              '(' + str(note.to_frequency()) + ')',
-                              str(note.to_length_secs()) + 's')
+                        print(
+                            note.name + str(note.octave),
+                            "(" + str(note.to_frequency()) + ")",
+                            str(note.to_length_secs()) + "s",
+                        )
                     controller.set_frequency(note.to_frequency())
                 else:
                     controller.set_frequency(0)

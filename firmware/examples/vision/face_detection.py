@@ -22,13 +22,14 @@ import argparse
 
 from PIL import Image, ImageDraw
 
-from aiy.vision.inference import ImageInference
-from aiy.vision.models import face_detection
+from src.vision.inference import ImageInference
+from src.vision.models import face_detection
+
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input', '-i', dest='input', required=True)
-    parser.add_argument('--output', '-o', dest='output')
+    parser.add_argument("--input", "-i", dest="input", required=True)
+    parser.add_argument("--output", "-o", dest="output")
     args = parser.parse_args()
 
     with ImageInference(face_detection.model()) as inference:
@@ -36,12 +37,12 @@ def main():
         draw = ImageDraw.Draw(image)
         faces = face_detection.get_faces(inference.run(image))
         for i, face in enumerate(faces):
-            print('Face #%d: %s' % (i, face))
+            print("Face #%d: %s" % (i, face))
             x, y, width, height = face.bounding_box
-            draw.rectangle((x, y, x + width, y + height), outline='red')
+            draw.rectangle((x, y, x + width, y + height), outline="red")
         if args.output:
             image.save(args.output)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

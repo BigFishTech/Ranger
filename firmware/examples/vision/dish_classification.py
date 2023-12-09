@@ -17,21 +17,23 @@
 import argparse
 from PIL import Image
 
-from aiy.vision.inference import ImageInference
-from aiy.vision.models import dish_classification
+from src.vision.inference import ImageInference
+from src.vision.models import dish_classification
+
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input', '-i', dest='input', required=True)
+    parser.add_argument("--input", "-i", dest="input", required=True)
     args = parser.parse_args()
 
     with ImageInference(dish_classification.model()) as inference:
         image = Image.open(args.input)
         classes = dish_classification.get_classes(
-            inference.run(image), top_k=5, threshold=0.1)
+            inference.run(image), top_k=5, threshold=0.1
+        )
         for i, (label, score) in enumerate(classes):
-            print('Result %d: %s (prob=%f)' % (i, label, score))
+            print("Result %d: %s (prob=%f)" % (i, label, score))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

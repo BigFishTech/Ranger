@@ -7,13 +7,13 @@ ensure the full range is reachable.
 
 from time import sleep
 from gpiozero import Servo
-from aiy.pins import PIN_A
-from aiy.pins import PIN_B
+from src.pins import PIN_A
+from src.pins import PIN_B
 
 # Create a default servo that will not be able to use quite the full range.
 simple_servo = Servo(PIN_A)
 # Create a servo with the custom values to give the full dynamic range.
-tuned_servo = Servo(PIN_B, min_pulse_width=.0005, max_pulse_width=.0019)
+tuned_servo = Servo(PIN_B, min_pulse_width=0.0005, max_pulse_width=0.0019)
 
 # Move the Servos back and forth until the user terminates the example.
 while True:

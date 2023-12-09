@@ -17,11 +17,11 @@ import argparse
 import time
 import picamera
 
-from aiy.pins import PIN_A
-from aiy.pins import BUTTON_GPIO_PIN
-from aiy.vision.inference import CameraInference
-from aiy.vision.models import image_classification
-from aiy.vision.annotator import Annotator
+from src.pins import PIN_A
+from src.pins import BUTTON_GPIO_PIN
+from src.vision.inference import CameraInference
+from src.vision.models import image_classification
+from src.vision.annotator import Annotator
 from gpiozero import Button
 from gpiozero import AngularServo
 from wordnet_grouping import category_mapper
@@ -50,24 +50,29 @@ class AutoButton:
 
 class OverlayManager:
     """Overlay utility for managing state and drawing of overlay."""
+
     LINE_HEIGHT = 12
     ROW_HEIGHT = 50
 
     def __init__(self, camera):
         self._clear_needed = False
-        self._annotator = Annotator(camera, default_color=(0xFF, 0xFF, 0xFF, 0xFF),
-                                    dimensions=(320, 240))
+        self._annotator = Annotator(
+            camera, default_color=(0xFF, 0xFF, 0xFF, 0xFF), dimensions=(320, 240)
+        )
 
     def _draw_annotation(self, result, category, index):
-        self._annotator.text((5,
-                              index * self.ROW_HEIGHT + 5 + 0 * self.LINE_HEIGHT),
-                             '{:.2%}'.format(result[1]))
-        self._annotator.text((5,
-                              index * self.ROW_HEIGHT + 5 + 1 * self.LINE_HEIGHT),
-                             '{:25.25}'.format(result[0]))
-        self._annotator.text((5,
-                              index * self.ROW_HEIGHT + 5 + 2 * self.LINE_HEIGHT),
-                             'category: {:20.20}'.format(category))
+        self._annotator.text(
+            (5, index * self.ROW_HEIGHT + 5 + 0 * self.LINE_HEIGHT),
+            "{:.2%}".format(result[1]),
+        )
+        self._annotator.text(
+            (5, index * self.ROW_HEIGHT + 5 + 1 * self.LINE_HEIGHT),
+            "{:25.25}".format(result[0]),
+        )
+        self._annotator.text(
+            (5, index * self.ROW_HEIGHT + 5 + 2 * self.LINE_HEIGHT),
+            "category: {:20.20}".format(category),
+        )
 
     def clear(self):
         if self._clear_needed:
@@ -94,40 +99,47 @@ class DummyOverlayManager:
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Example application for displaying a dial indicator for '
-        'what object is seen')
+        description="Example application for displaying a dial indicator for "
+        "what object is seen"
+    )
     parser.add_argument(
-        '--output_overlay',
+        "--output_overlay",
         default=True,
         type=bool,
-        help='Should the visual overlay be generated')
+        help="Should the visual overlay be generated",
+    )
     parser.add_argument(
-        '--button_enabled',
+        "--button_enabled",
         default=True,
         type=bool,
-        help='Should the button be monitored')
+        help="Should the button be monitored",
+    )
     parser.add_argument(
-        '--button_active',
+        "--button_active",
         default=False,
         type=bool,
-        help='Should the button start out active (true) or only be active once '
-        'pressed (false)')
+        help="Should the button start out active (true) or only be active once "
+        "pressed (false)",
+    )
     flags = parser.parse_args()
     load_model = time.time()
     category_count = len(category_mapper.get_categories())
     button = AutoButton(flags.button_active, flags.button_enabled)
 
     for category in category_mapper.get_categories():
-        print('Category[%d]: %s' % (category_mapper.get_category_index(category),
-                                    category))
+        print(
+            "Category[%d]: %s"
+            % (category_mapper.get_category_index(category), category)
+        )
     with picamera.PiCamera() as camera:
         camera.resolution = (1640, 1232)
         camera.start_preview()
-        overlay = OverlayManager(
-            camera) if flags.output_overlay else DummyOverlayManager()
-        servo = AngularServo(PIN_A, min_pulse_width=.0005, max_pulse_width=.0019)
+        overlay = (
+            OverlayManager(camera) if flags.output_overlay else DummyOverlayManager()
+        )
+        servo = AngularServo(PIN_A, min_pulse_width=0.0005, max_pulse_width=0.0019)
         with CameraInference(image_classification.model()) as classifier:
-            print('Load Model %f' % (time.time() - load_model))
+            print("Load Model %f" % (time.time() - load_model))
             for result in classifier.run():
                 if not button.on():
                     overlay.clear()
@@ -139,20 +151,24 @@ def main():
                 probs = [0] * (category_count + 1)
                 result_categories = []
                 for label, score in classes:
-                    category = category_mapper.get_category(label) or 'Other'
+                    category = category_mapper.get_category(label) or "Other"
                     probs[category_mapper.get_category_index(category) + 1] += score
                     result_categories.append(category)
                 overlay.update(classes, result_categories)
                 max_prob = max(probs)
                 best_category = probs.index(max_prob)
-                if best_category == 0 and max_prob > .5:
+                if best_category == 0 and max_prob > 0.5:
                     servo.angle = -90
                 elif best_category != 0:
                     servo.angle = -90 + (180 * best_category) / category_count
-                    print('category: %d - %s' %
-                          (best_category,
-                           category_mapper.get_categories()[best_category - 1]))
+                    print(
+                        "category: %d - %s"
+                        % (
+                            best_category,
+                            category_mapper.get_categories()[best_category - 1],
+                        )
+                    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

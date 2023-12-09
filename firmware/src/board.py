@@ -19,7 +19,7 @@ Bonnet and Voice Bonnet/HAT's button connector. For example:
 .. literalinclude:: ../src/examples/button_led.py
    :language: python
 
-.. module:: aiy.board
+.. module:: src.board
 
 .. autoclass:: Board
     :members:
@@ -38,7 +38,7 @@ Bonnet and Voice Bonnet/HAT's button connector. For example:
     This class is primarily intended for compatibility with the Voice HAT
     (V1 Voice Kit), and it also works on the Voice/Vision Bonnet. However, if
     you're using *only* the Voice/Vision Bonnet, then you should instead use
-    :mod:`aiy.leds`, which provides more controls for the button's unique
+    :mod:`src.leds`, which provides more controls for the button's unique
     RGB LED.
 
    .. py:method:: brightness(value)
@@ -73,11 +73,13 @@ from collections import namedtuple
 
 from RPi import GPIO
 
-from aiy.leds import Color, Leds, Pattern
+from src.leds import Color, Leds, Pattern
+
 
 class Button:
-    """ An interface for the button connected to the AIY board's
+    """An interface for the button connected to the AIY board's
     button connector."""
+
     @staticmethod
     def _trigger(event_queue, callback):
         try:
@@ -106,23 +108,25 @@ class Button:
                         self._trigger(self._released_queue, self._released_callback)
             self._done.wait(0.05)
 
-    def __init__(self, channel, edge='falling', pull_up_down='up',
-                 debounce_time=0.08):
-        if pull_up_down not in ('up', 'down'):
+    def __init__(self, channel, edge="falling", pull_up_down="up", debounce_time=0.08):
+        if pull_up_down not in ("up", "down"):
             raise ValueError('Must be "up" or "down"')
 
-        if edge not in ('falling', 'rising'):
+        if edge not in ("falling", "rising"):
             raise ValueError('Must be "falling" or "rising"')
 
         self._channel = channel
-        GPIO.setup(channel, GPIO.IN,
-                   pull_up_down={'up': GPIO.PUD_UP, 'down': GPIO.PUD_DOWN}[pull_up_down])
+        GPIO.setup(
+            channel,
+            GPIO.IN,
+            pull_up_down={"up": GPIO.PUD_UP, "down": GPIO.PUD_DOWN}[pull_up_down],
+        )
 
         self._pressed_callback = None
         self._released_callback = None
 
         self._debounce_time = debounce_time
-        self._expected = True if edge == 'rising' else False
+        self._expected = True if edge == "rising" else False
 
         self._pressed_queue = queue.Queue()
         self._released_queue = queue.Queue()
@@ -145,11 +149,13 @@ class Button:
 
     def _when_pressed(self, callback):
         self._pressed_callback = callback
+
     when_pressed = property(None, _when_pressed)
     """A function to run when the button is pressed."""
 
     def _when_released(self, callback):
         self._released_callback = callback
+
     when_released = property(None, _when_released)
     """A function to run when the button is released."""
 
@@ -173,23 +179,19 @@ class Button:
         self._released_queue.put(event)
         return event.wait(timeout)
 
-class MultiColorLed:
-    Config = namedtuple('Config', ['channels', 'pattern'])
 
-    OFF         = Config(channels=lambda color: Leds.rgb_off(),
-                         pattern=None)
-    ON          = Config(channels=Leds.rgb_on,
-                         pattern=None)
-    BLINK       = Config(channels=Leds.rgb_pattern,
-                         pattern=Pattern.blink(500))
-    BLINK_3     = BLINK
-    BEACON      = BLINK
+class MultiColorLed:
+    Config = namedtuple("Config", ["channels", "pattern"])
+
+    OFF = Config(channels=lambda color: Leds.rgb_off(), pattern=None)
+    ON = Config(channels=Leds.rgb_on, pattern=None)
+    BLINK = Config(channels=Leds.rgb_pattern, pattern=Pattern.blink(500))
+    BLINK_3 = BLINK
+    BEACON = BLINK
     BEACON_DARK = BLINK
-    DECAY       = BLINK
-    PULSE_SLOW  = Config(channels=Leds.rgb_pattern,
-                         pattern=Pattern.breathe(500))
-    PULSE_QUICK = Config(channels=Leds.rgb_pattern,
-                         pattern=Pattern.breathe(100))
+    DECAY = BLINK
+    PULSE_SLOW = Config(channels=Leds.rgb_pattern, pattern=Pattern.breathe(500))
+    PULSE_QUICK = Config(channels=Leds.rgb_pattern, pattern=Pattern.breathe(100))
 
     def _update(self, state, brightness):
         with self._lock:
@@ -226,39 +228,41 @@ class MultiColorLed:
     @brightness.setter
     def brightness(self, value):
         if value < 0.0 or value > 1.0:
-            raise ValueError('Brightness must be between 0.0 and 1.0.')
+            raise ValueError("Brightness must be between 0.0 and 1.0.")
         self._update(state=None, brightness=value)
 
     def _set_state(self, state):
         self._update(state=state, brightness=None)
+
     state = property(None, _set_state)
 
 
-
 class SingleColorLed:
-    Config = namedtuple('Config', ['duty_cycles', 'pause'])
+    Config = namedtuple("Config", ["duty_cycles", "pause"])
 
-    OFF         = Config(duty_cycles=lambda: [0], pause=1.0)
-    ON          = Config(duty_cycles=lambda: [100], pause=1.0)
-    BLINK       = Config(duty_cycles=lambda: [0, 100], pause=0.5)
-    BLINK_3     = Config(duty_cycles=lambda: [0, 100] * 3 + [0, 0],
-                         pause=0.25)
-    BEACON      = Config(duty_cycles=lambda: itertools.chain([30] * 100,
-                                                             [100] * 8,
-                                                             range(100, 30, -5)),
-                         pause=0.05)
-    BEACON_DARK = Config(duty_cycles=lambda: itertools.chain([0] * 100,
-                                                             range(0, 30, 3),
-                                                             range(30, 0, -3)),
-                         pause=0.05)
-    DECAY       = Config(duty_cycles=lambda: range(100, 0, -2),
-                         pause=0.05)
-    PULSE_SLOW  = Config(duty_cycles=lambda: itertools.chain(range(0, 100, 2),
-                                                             range(100, 0, -2)),
-                         pause=0.1)
-    PULSE_QUICK = Config(duty_cycles=lambda: itertools.chain(range(0, 100, 5),
-                                                                range(100, 0, -5)),
-                         pause=0.05)
+    OFF = Config(duty_cycles=lambda: [0], pause=1.0)
+    ON = Config(duty_cycles=lambda: [100], pause=1.0)
+    BLINK = Config(duty_cycles=lambda: [0, 100], pause=0.5)
+    BLINK_3 = Config(duty_cycles=lambda: [0, 100] * 3 + [0, 0], pause=0.25)
+    BEACON = Config(
+        duty_cycles=lambda: itertools.chain([30] * 100, [100] * 8, range(100, 30, -5)),
+        pause=0.05,
+    )
+    BEACON_DARK = Config(
+        duty_cycles=lambda: itertools.chain(
+            [0] * 100, range(0, 30, 3), range(30, 0, -3)
+        ),
+        pause=0.05,
+    )
+    DECAY = Config(duty_cycles=lambda: range(100, 0, -2), pause=0.05)
+    PULSE_SLOW = Config(
+        duty_cycles=lambda: itertools.chain(range(0, 100, 2), range(100, 0, -2)),
+        pause=0.1,
+    )
+    PULSE_QUICK = Config(
+        duty_cycles=lambda: itertools.chain(range(0, 100, 5), range(100, 0, -5)),
+        pause=0.05,
+    )
 
     def _run(self):
         while True:
@@ -307,12 +311,13 @@ class SingleColorLed:
     @brightness.setter
     def brightness(self, value):
         if value < 0.0 or value > 1.0:
-            raise ValueError('Brightness must be between 0.0 and 1.0.')
+            raise ValueError("Brightness must be between 0.0 and 1.0.")
         self._brightness = value
 
     def _set_state(self, state):
         self._queue.put(state)
         self._updated.set()
+
     state = property(None, _set_state)
 
 
@@ -325,8 +330,10 @@ else:
 BUTTON_PIN = 23
 LED_PIN = 25
 
+
 class Board:
     """An interface for the connected AIY board."""
+
     def __init__(self, button_pin=BUTTON_PIN, led_pin=LED_PIN):
         self._stack = contextlib.ExitStack()
         self._lock = threading.Lock()

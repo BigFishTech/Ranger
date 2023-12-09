@@ -14,8 +14,8 @@
 # limitations under the License.
 """Trigger PiCamera when face is detected."""
 
-from aiy.vision.inference import CameraInference
-from aiy.vision.models import face_detection
+from src.vision.inference import CameraInference
+from src.vision.models import face_detection
 
 from picamera import PiCamera
 
@@ -30,12 +30,12 @@ def main():
         with CameraInference(face_detection.model()) as inference:
             for result in inference.run():
                 if len(face_detection.get_faces(result)) >= 1:
-                    camera.capture('faces.jpg')
+                    camera.capture("faces.jpg")
                     break
 
         # Stop preview
         camera.stop_preview()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

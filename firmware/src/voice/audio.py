@@ -7,7 +7,7 @@ APIs to record and play audio files.
     HAT/Bonnet specifically. However, many of the APIs require some type of sound card
     attached to the Raspberry Pi that can be detected by the ALSA subsystem.
 
-.. module:: aiy.voice.audio
+.. module:: src.voice.audio
 
 Recording
 ---------

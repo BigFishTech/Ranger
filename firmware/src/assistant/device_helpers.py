@@ -21,7 +21,7 @@ import uuid
 
 import google.auth.transport.requests
 
-import aiy.assistant.auth_helpers
+import src.assistant.auth_helpers
 
 
 _DEVICE_MODEL = "voice-kit"
@@ -30,22 +30,24 @@ _DEVICE_NAME = "Voice Kit"
 _DEVICE_TYPE = "action.devices.types.LIGHT"
 
 _DEVICE_ID_FILE = os.path.join(
-    aiy.assistant.auth_helpers._VR_CACHE_DIR, 'device_id.json')
+    src.assistant.auth_helpers._VR_CACHE_DIR, "device_id.json"
+)
 
 
 def _get_project_id():
-    with open(aiy.assistant.auth_helpers._ASSISTANT_CREDENTIALS_FILE) as f:
+    with open(src.assistant.auth_helpers._ASSISTANT_CREDENTIALS_FILE) as f:
         client_secrets_data = json.load(f)
         return client_secrets_data["installed"]["project_id"]
 
 
 def _get_api_url(*args):
     return "/".join(
-        ("https://embeddedassistant.googleapis.com/v1alpha2/projects",) + args)
+        ("https://embeddedassistant.googleapis.com/v1alpha2/projects",) + args
+    )
 
 
 def _load_ids(id_path):
-    with open(id_path, 'r') as f:
+    with open(id_path, "r") as f:
         id_data = json.load(f)
     return id_data["model_id"], id_data["device_id"]
 
@@ -58,7 +60,7 @@ def _save_ids(id_path, model_id, device_id):
         "model_id": model_id,
         "device_id": device_id,
     }
-    with open(id_path, 'w') as f:
+    with open(id_path, "w") as f:
         json.dump(id_data, f)
 
 
@@ -88,8 +90,9 @@ def register_model_id(credentials, model_id=None):
     }
     r = session.get(_get_api_url(project_id, "deviceModels", model_id))
     if r.status_code == 404:
-        r = session.post(_get_api_url(project_id, "deviceModels"),
-                         data=json.dumps(payload))
+        r = session.post(
+            _get_api_url(project_id, "deviceModels"), data=json.dumps(payload)
+        )
     r.raise_for_status()
     return model_id
 
@@ -121,8 +124,7 @@ def register_device_id(credentials, model_id, device_id, client_type):
     }
     r = session.get(_get_api_url(project_id, "devices", device_id))
     if r.status_code == 404:
-        r = session.post(_get_api_url(project_id, "devices"),
-                         data=json.dumps(payload))
+        r = session.post(_get_api_url(project_id, "devices"), data=json.dumps(payload))
     r.raise_for_status()
     return device_id
 
@@ -158,5 +160,5 @@ def get_ids_for_service(credentials):
 
 
 if __name__ == "__main__":
-    credentials = aiy.assistant.auth_helpers.get_assistant_credentials()
+    credentials = src.assistant.auth_helpers.get_assistant_credentials()
     print("ids:", get_ids_for_service(credentials))

@@ -34,7 +34,7 @@ class PWMController:
     """Controller that simplifies the interface to pwm-soft Linux driver.
 
     Simple usage:
-        from aiy._drivers._buzzer import PWMController
+        from src._drivers._buzzer import PWMController
         with PWMController(gpio=22) as controller:
             controller.set_frequency(440.00)
             time.sleep(1)
@@ -54,9 +54,9 @@ class PWMController:
     For more melodious uses, set_frequency should be enough.
     """
 
-    PWM_SOFT_BASE_PATH = '/sys/class/pwm-soft'
-    PWM_SOFT_EXPORT_PATH = PWM_SOFT_BASE_PATH + '/export'
-    PWM_SOFT_UNEXPORT_PATH = PWM_SOFT_BASE_PATH + '/unexport'
+    PWM_SOFT_BASE_PATH = "/sys/class/pwm-soft"
+    PWM_SOFT_EXPORT_PATH = PWM_SOFT_BASE_PATH + "/export"
+    PWM_SOFT_UNEXPORT_PATH = PWM_SOFT_BASE_PATH + "/unexport"
 
     def __init__(self, gpio):
         """Initializes and configures the pwm-soft driver for the given GPIO.
@@ -84,7 +84,7 @@ class PWMController:
         Args:
             pwm_number: the number of the PWM previously exported.
         """
-        return '%s/pwm%d' % (self.PWM_SOFT_BASE_PATH, pwm_number)
+        return "%s/pwm%d" % (self.PWM_SOFT_BASE_PATH, pwm_number)
 
     def _wait_for_access(self, path):
         retry_count = 7
@@ -95,7 +95,7 @@ class PWMController:
             retry_time *= 2
 
         if not os.access(path, os.W_OK):
-            raise IOError('Could not open %s' % path)
+            raise IOError("Could not open %s" % path)
 
     def _pwrite_int(self, path, data):
         """Helper method to quickly write a value to a sysfs node.
@@ -105,7 +105,7 @@ class PWMController:
             data: an integer to write to the sysfs node.
         """
         self._wait_for_access(path)
-        with open(path, 'w') as output:
+        with open(path, "w") as output:
             self._write_int(output, data)
 
     def _write_int(self, fh, data):
@@ -118,7 +118,7 @@ class PWMController:
             fh: the file handle to write to (as returned by open).
             data: the integer to write to the file.
         """
-        fh.write('%d\n' % data)
+        fh.write("%d\n" % data)
         fh.flush()
 
     def _export_pwm(self):
@@ -136,18 +136,18 @@ class PWMController:
 
         self._exported = True
 
-        period_path = self._make_pwm_path(self.gpio) + '/period'
+        period_path = self._make_pwm_path(self.gpio) + "/period"
         try:
             self._wait_for_access(period_path)
-            self._period_fh = open(period_path, 'w')
+            self._period_fh = open(period_path, "w")
         except BaseException:
             self._unexport_pwm()
             raise
 
-        pulse_path = self._make_pwm_path(self.gpio) + '/pulse'
+        pulse_path = self._make_pwm_path(self.gpio) + "/pulse"
         try:
             self._wait_for_access(pulse_path)
-            self._pulse_fh = open(pulse_path, 'w')
+            self._pulse_fh = open(pulse_path, "w")
         except BaseException:
             self._unexport_pwm()
             raise

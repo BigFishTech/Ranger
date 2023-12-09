@@ -17,49 +17,64 @@ import sys
 
 from collections import defaultdict
 
-from aiy.vision.inference import ModelDescriptor, ThresholdingConfig, FromSparseTensorConfig
-from aiy.vision.models import utils
+from src.vision.inference import (
+    ModelDescriptor,
+    ThresholdingConfig,
+    FromSparseTensorConfig,
+)
+from src.vision.models import utils
 
-_COMPUTE_GRAPH_NAME = 'mobilenet_ssd_256res_0.125_person_cat_dog.binaryproto'
+_COMPUTE_GRAPH_NAME = "mobilenet_ssd_256res_0.125_person_cat_dog.binaryproto"
 _MACHINE_EPS = sys.float_info.epsilon
-_SCORE_TENSOR_NAME = 'concat_1'
-_ANCHOR_TENSOR_NAME = 'concat'
+_SCORE_TENSOR_NAME = "concat_1"
+_ANCHOR_TENSOR_NAME = "concat"
 _DEFAULT_THRESHOLD = 0.3
-_ANCHORS = utils.load_ssd_anchors('mobilenet_ssd_256res_0.125_person_cat_dog_anchors.txt')
+_ANCHORS = utils.load_ssd_anchors(
+    "mobilenet_ssd_256res_0.125_person_cat_dog_anchors.txt"
+)
 _NUM_ANCHORS = len(_ANCHORS)
+
 
 def _logit(x):
     return math.log(x / (1.0 - x))
 
+
 def _logistic(x):
     return 1.0 / (1.0 + math.exp(-x))
 
+
 def sparse_configs(threshold=_DEFAULT_THRESHOLD):
     if threshold < 0 or threshold > 1.0:
-        raise ValueError('Threshold must be in [0.0, 1.0]')
+        raise ValueError("Threshold must be in [0.0, 1.0]")
 
     return {
-        _SCORE_TENSOR_NAME: ThresholdingConfig(logical_shape=[_NUM_ANCHORS, 4],
-                                               threshold=_logit(max(threshold, _MACHINE_EPS)),
-                                               top_k=_NUM_ANCHORS,
-                                               to_ignore=[(1, 0)]),
-        _ANCHOR_TENSOR_NAME: FromSparseTensorConfig(logical_shape=[_NUM_ANCHORS],
-                                                    tensor_name=_SCORE_TENSOR_NAME,
-                                                    squeeze_dims=[1])
+        _SCORE_TENSOR_NAME: ThresholdingConfig(
+            logical_shape=[_NUM_ANCHORS, 4],
+            threshold=_logit(max(threshold, _MACHINE_EPS)),
+            top_k=_NUM_ANCHORS,
+            to_ignore=[(1, 0)],
+        ),
+        _ANCHOR_TENSOR_NAME: FromSparseTensorConfig(
+            logical_shape=[_NUM_ANCHORS],
+            tensor_name=_SCORE_TENSOR_NAME,
+            squeeze_dims=[1],
+        ),
     }
+
 
 class Object:
     """Object detection result."""
+
     BACKGROUND = 0
     PERSON = 1
     CAT = 2
     DOG = 3
 
     _LABELS = {
-        BACKGROUND: 'BACKGROUND',
-        PERSON: 'PERSON',
-        CAT: 'CAT',
-        DOG: 'DOG',
+        BACKGROUND: "BACKGROUND",
+        PERSON: "PERSON",
+        CAT: "CAT",
+        DOG: "DOG",
     }
 
     def __init__(self, bounding_box, kind, score):
@@ -75,12 +90,17 @@ class Object:
         self.score = score
 
     def __str__(self):
-        return 'kind=%s(%d), score=%f, bbox=%s' % (self._LABELS[self.kind],
-                                                   self.kind, self.score,
-                                                   str(self.bounding_box))
+        return "kind=%s(%d), score=%f, bbox=%s" % (
+            self._LABELS[self.kind],
+            self.kind,
+            self.score,
+            str(self.bounding_box),
+        )
 
-def _decode_detection_result(logit_scores, box_encodings, threshold,
-                             image_size, image_offset):
+
+def _decode_detection_result(
+    logit_scores, box_encodings, threshold, image_size, image_offset
+):
     assert len(logit_scores) == 4 * _NUM_ANCHORS
     assert len(box_encodings) == 4 * _NUM_ANCHORS
 
@@ -88,22 +108,28 @@ def _decode_detection_result(logit_scores, box_encodings, threshold,
     objs = []
 
     for i in range(_NUM_ANCHORS):
-        logits = logit_scores[4 * i: 4 * (i + 1)]
+        logits = logit_scores[4 * i : 4 * (i + 1)]
         max_logit = max(logits)
         max_logit_index = logits.index(max_logit)
         if max_logit_index == 0 or max_logit <= logit_threshold:
             continue  # Skip 'background' and below threshold.
 
-        bbox = _decode_bbox(box_encodings[4 * i: 4 * (i + 1)], _ANCHORS[i],
-                            image_size, image_offset)
+        bbox = _decode_bbox(
+            box_encodings[4 * i : 4 * (i + 1)], _ANCHORS[i], image_size, image_offset
+        )
         objs.append(Object(bbox, max_logit_index, _logistic(max_logit)))
 
     return objs
 
 
-def _decode_sparse_detection_result(logit_scores_indices, logit_scores,
-                                    box_encodings_indices, box_encodings,
-                                    image_size, image_offset):
+def _decode_sparse_detection_result(
+    logit_scores_indices,
+    logit_scores,
+    box_encodings_indices,
+    box_encodings,
+    image_size,
+    image_offset,
+):
     assert len(logit_scores_indices) == len(logit_scores)
     assert 4 * len(box_encodings_indices) == len(box_encodings)
 
@@ -115,21 +141,24 @@ def _decode_sparse_detection_result(logit_scores_indices, logit_scores,
         logits_dict[i][logit_index] = logit_score
 
     for j, index in enumerate(box_encodings_indices):
-        i, = index.values
+        (i,) = index.values
 
         logits = logits_dict[i]
         max_logit = max(logits)
         max_logit_index = logits.index(max_logit)
 
-        bbox = _decode_bbox(box_encodings[4 * j: 4 * (j + 1)], _ANCHORS[i],
-                            image_size, image_offset)
+        bbox = _decode_bbox(
+            box_encodings[4 * j : 4 * (j + 1)], _ANCHORS[i], image_size, image_offset
+        )
         objs.append(Object(bbox, max_logit_index, _logistic(max_logit)))
 
     return objs
 
+
 def _clamp(value):
     """Clamps value to range [0.0, 1.0]."""
     return min(max(0.0, value), 1.0)
+
 
 def _decode_bbox(box_encoding, anchor, image_size, image_offset):
     x0, y0 = image_offset
@@ -140,6 +169,7 @@ def _decode_bbox(box_encoding, anchor, image_size, image_offset):
     w = int((xmax - xmin) * width)
     h = int((ymax - ymin) * height)
     return x, y, w, h
+
 
 def _decode_box_encoding(box_encoding, anchor):
     """Decodes bounding box encoding.
@@ -240,8 +270,10 @@ def _non_maximum_suppression(objs, overlap_threshold=0.5):
         for j in range(i + 1, len(objs)):
             if objs[j].score < 0.0:
                 continue
-            if _overlap_ratio(objs[i].bounding_box,
-                              objs[j].bounding_box) > overlap_threshold:
+            if (
+                _overlap_ratio(objs[i].bounding_box, objs[j].bounding_box)
+                > overlap_threshold
+            ):
                 objs[j].score = -1.0  # Suppress box
 
     return [obj for obj in objs if obj.score >= 0.0]  # Exclude suppressed boxes
@@ -249,21 +281,25 @@ def _non_maximum_suppression(objs, overlap_threshold=0.5):
 
 def model():
     return ModelDescriptor(
-        name='object_detection',
+        name="object_detection",
         input_shape=(1, 256, 256, 3),
         input_normalizer=(128.0, 128.0),
-        compute_graph=utils.load_compute_graph(_COMPUTE_GRAPH_NAME))
+        compute_graph=utils.load_compute_graph(_COMPUTE_GRAPH_NAME),
+    )
+
 
 def get_objects(result, threshold=_DEFAULT_THRESHOLD, offset=(0, 0)):
     if threshold < 0 or threshold > 1.0:
-        raise ValueError('Threshold must be in [0.0, 1.0]')
+        raise ValueError("Threshold must be in [0.0, 1.0]")
 
     assert len(result.tensors) == 2
     logit_scores = tuple(result.tensors[_SCORE_TENSOR_NAME].data)
     box_encodings = tuple(result.tensors[_ANCHOR_TENSOR_NAME].data)
 
     size = (result.window.width, result.window.height)
-    objs = _decode_detection_result(logit_scores, box_encodings, threshold, size, offset)
+    objs = _decode_detection_result(
+        logit_scores, box_encodings, threshold, size, offset
+    )
     return _non_maximum_suppression(objs)
 
 
@@ -276,7 +312,12 @@ def get_objects_sparse(result, offset=(0, 0)):
     box_encodings = tuple(result.tensors[_ANCHOR_TENSOR_NAME].data)
 
     size = (result.window.width, result.window.height)
-    objs = _decode_sparse_detection_result(logit_scores_indices, logit_scores,
-                                           box_encodings_indices, box_encodings,
-                                           size, offset)
+    objs = _decode_sparse_detection_result(
+        logit_scores_indices,
+        logit_scores,
+        box_encodings_indices,
+        box_encodings,
+        size,
+        offset,
+    )
     return _non_maximum_suppression(objs)

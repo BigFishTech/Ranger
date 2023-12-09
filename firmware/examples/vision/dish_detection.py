@@ -22,13 +22,14 @@ import argparse
 
 from PIL import Image, ImageDraw
 
-from aiy.vision.inference import ImageInference
-from aiy.vision.models import dish_detection
+from src.vision.inference import ImageInference
+from src.vision.models import dish_detection
+
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input', '-i', dest='input', required=True)
-    parser.add_argument('--output', '-o', dest='output')
+    parser.add_argument("--input", "-i", dest="input", required=True)
+    parser.add_argument("--output", "-o", dest="output")
     args = parser.parse_args()
 
     with ImageInference(dish_detection.model()) as inference:
@@ -36,12 +37,12 @@ def main():
         draw = ImageDraw.Draw(image)
         dishes = dish_detection.get_dishes(inference.run(image))
         for i, dish in enumerate(dishes):
-            print('Dish #%d: %s' % (i, dish))
+            print("Dish #%d: %s" % (i, dish))
             x, y, width, height = dish.bounding_box
-            draw.rectangle((x, y, x + width, y + height), outline='red')
+            draw.rectangle((x, y, x + width, y + height), outline="red")
         if args.output:
             image.save(args.output)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

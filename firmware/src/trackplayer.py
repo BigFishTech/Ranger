@@ -17,7 +17,7 @@ A tracker-based music player for the piezo buzzer.
 
 This API is designed for the Vision Kit, but has no dependency on the Vision
 Bonnet, so may be used without it. It only requires a piezo buzzer connected to
-:any:`aiy.pins.BUZZER_GPIO_PIN`.
+:any:`src.pins.BUZZER_GPIO_PIN`.
 """
 
 
@@ -56,10 +56,12 @@ class Glissando(Command):
 
     def apply(self, player, controller, note, tick_delta):
         frequency = controller.frequency_hz()
-        controller.set_frequency(frequency + (self.hz_per_tick * tick_delta * self.direction))
+        controller.set_frequency(
+            frequency + (self.hz_per_tick * tick_delta * self.direction)
+        )
 
     def __str__(self):
-        return 'glis(dir=%d, hz_per_tick=%d)' % (self.direction, self.hz_per_tick)
+        return "glis(dir=%d, hz_per_tick=%d)" % (self.direction, self.hz_per_tick)
 
     @classmethod
     def parse(klass, *args):
@@ -77,10 +79,12 @@ class PulseChange(Command):
 
     def apply(self, player, controller, note, tick_delta):
         pulse = controller.pulse_usec()
-        controller.set_pulse_usec(pulse + (self.usec_per_tick * tick_delta * self.direction))
+        controller.set_pulse_usec(
+            pulse + (self.usec_per_tick * tick_delta * self.direction)
+        )
 
     def __str__(self):
-        return 'puls(dir=%d, usec_per_tick=%d)' % (self.direction, self.usec_per_tick)
+        return "puls(dir=%d, usec_per_tick=%d)" % (self.direction, self.usec_per_tick)
 
     @classmethod
     def parse(klass, *args):
@@ -99,7 +103,7 @@ class SetPulseWidth(Command):
         controller.set_pulse_usec(self.pulse)
 
     def __str__(self):
-        return 'spwd(pulse=' + str(self.pulse) + ')'
+        return "spwd(pulse=" + str(self.pulse) + ")"
 
     @classmethod
     def parse(klass, *args):
@@ -122,7 +126,7 @@ class Arpeggio(Command):
             controller.set_frequency(chord_note.to_frequency())
 
     def __str__(self):
-        return 'arpg(chord=' + ', '.join([str(x) for x in self.chord]) + ')'
+        return "arpg(chord=" + ", ".join([str(x) for x in self.chord]) + ")"
 
     @classmethod
     def parse(klass, *args):
@@ -149,7 +153,7 @@ class Vibrato(Command):
         controller.set_frequency(int(freq))
 
     def __str__(self):
-        return 'vibr(depth=%d, speed=%d)' % (self.depth_hz, self.speed)
+        return "vibr(depth=%d, speed=%d)" % (self.depth_hz, self.speed)
 
     @classmethod
     def parse(klass, *args):
@@ -173,7 +177,7 @@ class Retrigger(Command):
             controller.set_frequency(note.to_frequency())
 
     def __str__(self):
-        return 'retg(times=' + str(self.times) + ')'
+        return "retg(times=" + str(self.times) + ")"
 
     @classmethod
     def parse(klass, *args):
@@ -189,7 +193,7 @@ class NoteOff(Command):
             controller.set_frequency(0)
 
     def __str__(self):
-        return 'noff'
+        return "noff"
 
     @classmethod
     def parse(klass, *args):
@@ -207,7 +211,7 @@ class SetSpeed(Command):
             controller.set_speed(self.speed)
 
     def __str__(self):
-        return 'sspd(speed=' + str(self.speed) + ')'
+        return "sspd(speed=" + str(self.speed) + ")"
 
     @classmethod
     def parse(klass, *args):
@@ -226,7 +230,7 @@ class JumpToPosition(Command):
             controller.set_position(self.position)
 
     def __str__(self):
-        return 'jump(pos=' + str(self.position) + ')'
+        return "jump(pos=" + str(self.position) + ")"
 
     @classmethod
     def parse(klass, *args):
@@ -243,7 +247,7 @@ class StopPlaying(Command):
             player.stop()
 
     def __str__(self):
-        return 'stop'
+        return "stop"
 
     @classmethod
     def parse(klass, *args):
@@ -278,31 +282,31 @@ class TrackPlayer:
         """
         self.patterns.append(pattern)
         if self.debug:
-            print('Added new pattern %d' % (len(self.patterns) - 1))
+            print("Added new pattern %d" % (len(self.patterns) - 1))
         return len(self.patterns) - 1
 
     def add_order(self, pattern_number):
         """Adds a pattern index to the order."""
         if self.debug:
-            print('Adding order[%d] == %d' % (len(self.order), pattern_number))
+            print("Adding order[%d] == %d" % (len(self.order), pattern_number))
         self.order.append(pattern_number)
 
     def set_order(self, position, pattern_number):
         """Changes a pattern index in the order."""
         if self.debug:
-            print('Setting order[%d] == %d' % (position, pattern_number))
+            print("Setting order[%d] == %d" % (position, pattern_number))
         self.order[position] = pattern_number
 
     def set_speed(self, new_speed):
         """Sets the playing speed in ticks/row."""
         if self.debug:
-            print('Setting speed to %d' % (new_speed))
+            print("Setting speed to %d" % (new_speed))
         self.speed = new_speed
 
     def set_position(self, new_position):
         """Sets the position inside of the current pattern."""
         if self.debug:
-            print('Jumping position to %d' % (new_position))
+            print("Jumping position to %d" % (new_position))
         self.current_position = new_Position
 
     def stop(self):
@@ -348,15 +352,18 @@ class TrackPlayer:
                         time.sleep(0.01)
 
                     if self.debug:
-                        print(' ' * 70 + '\r', end='')
-                        print('pos: %03d  pattern: %02d' %
-                              (self.current_position, self.current_pattern), end='')
+                        print(" " * 70 + "\r", end="")
+                        print(
+                            "pos: %03d  pattern: %02d"
+                            % (self.current_position, self.current_pattern),
+                            end="",
+                        )
                         if last_note is not None:
-                            print('  note: %s' % (str(last_note)), end='')
+                            print("  note: %s" % (str(last_note)), end="")
                         else:
-                            print('          ', end='')
+                            print("          ", end="")
                         if last_command is not None:
-                            print('  command: %s' % (str(last_command)), end='')
+                            print("  command: %s" % (str(last_command)), end="")
 
                     self.current_position += 1
 
@@ -462,20 +469,20 @@ class TrackLoader:
     stop stops the Player from playing.
     """
 
-    NOTE_RE = re.compile(r'(?P<name>[A-Ga-g])(?P<octave>[1-8])')
-    COMMAND_RE = re.compile(r'(?P<name>[a-z]{4})')
+    NOTE_RE = re.compile(r"(?P<name>[A-Ga-g])(?P<octave>[1-8])")
+    COMMAND_RE = re.compile(r"(?P<name>[a-z]{4})")
 
     COMMANDS = {
-        'glis': Glissando,
-        'puls': PulseChange,
-        'spwd': SetPulseWidth,
-        'arpg': Arpeggio,
-        'vibr': Vibrato,
-        'retg': Retrigger,
-        'noff': NoteOff,
-        'sspd': SetSpeed,
-        'jump': JumpToPosition,
-        'stop': StopPlaying
+        "glis": Glissando,
+        "puls": PulseChange,
+        "spwd": SetPulseWidth,
+        "arpg": Arpeggio,
+        "vibr": Vibrato,
+        "retg": Retrigger,
+        "noff": NoteOff,
+        "sspd": SetSpeed,
+        "jump": JumpToPosition,
+        "stop": StopPlaying,
     }
 
     def __init__(self, gpio, filename, debug=False):
@@ -506,14 +513,14 @@ class TrackLoader:
             word = line[word_idx]
             result = TrackLoader.NOTE_RE.match(word)
             if result is not None:
-                name = result.group('name')
-                octave = result.group('octave')
-                row.append(Note(result.group('name'), int(result.group('octave'))))
+                name = result.group("name")
+                octave = result.group("octave")
+                row.append(Note(result.group("name"), int(result.group("octave"))))
 
             result = TrackLoader.COMMAND_RE.match(word)
             if result is not None:
-                name = result.group('name')
-                args = line[word_idx + 1:]
+                name = result.group("name")
+                args = line[word_idx + 1 :]
                 klass = TrackLoader.COMMANDS[name]
                 command, args_used = klass.parse(*args)
                 row.append(command)
@@ -540,9 +547,9 @@ class TrackLoader:
         pattern_count = 0
         order = []
 
-        with open(self.filename, 'r') as module:
+        with open(self.filename, "r") as module:
             lines = module.readlines()
-            self._debug('Loaded %d lines.', len(lines))
+            self._debug("Loaded %d lines.", len(lines))
 
             header_finished = False
             between_patterns = True
@@ -554,11 +561,11 @@ class TrackLoader:
                     if len(line) == 0:
                         if not between_patterns:
                             current_pattern.append([])
-                    elif line[0] == 'pattern':
+                    elif line[0] == "pattern":
                         between_patterns = False
                         current_pattern = []
                         patterns.append(current_pattern)
-                    elif line[0] == 'end':
+                    elif line[0] == "end":
                         between_patterns = True
                     else:
                         row = self._parse_pattern_line(line)
@@ -566,13 +573,13 @@ class TrackLoader:
                 else:
                     if len(line) == 0:
                         continue
-                    if line[0] == 'speed':
+                    if line[0] == "speed":
                         speed = int(line[1])
-                    elif line[0] == 'order':
+                    elif line[0] == "order":
                         order = [int(x) for x in line[1:]]
-                    elif line[0] == 'end':
+                    elif line[0] == "end":
                         if len(order) == 0:
-                            raise Exception('No pattern order found!')
+                            raise Exception("No pattern order found!")
                         header_finished = True
 
         player = TrackPlayer(self.gpio, speed, debug=self.debug)

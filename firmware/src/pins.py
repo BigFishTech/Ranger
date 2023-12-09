@@ -21,7 +21,7 @@ These APIs are **not compatible** with the Voice HAT (V1 Voice Kit).
 For example, here's how to create a :class:`gpiozero.Servo` with ``PIN_B``::
 
     from gpiozero import Servo
-    from aiy.pins import PIN_B
+    from src.pins import PIN_B
 
     # Create a servo with the custom values to give the full dynamic range.
     tuned_servo = Servo(PIN_B, min_pulse_width=.0005, max_pulse_width=.0019)
@@ -41,32 +41,32 @@ For more examples, see `src/examples/gpiozero/
    **Figure 1.** Pin and LED positions on the Vision and Voice Bonnet.
 
 
-.. py:module:: aiy.pins
+.. py:module:: src.pins
 
-.. py:attribute:: aiy.pins.PIN_A
+.. py:attribute:: src.pins.PIN_A
 
-.. py:attribute:: aiy.pins.PIN_B
+.. py:attribute:: src.pins.PIN_B
 
-.. py:attribute:: aiy.pins.PIN_C
+.. py:attribute:: src.pins.PIN_C
 
-.. py:attribute:: aiy.pins.PIN_D
+.. py:attribute:: src.pins.PIN_D
 
-.. py:attribute:: aiy.pins.LED_1
+.. py:attribute:: src.pins.LED_1
 
    Use this with :class:`gpiozero.LED` to control LED_1 on the Vision/Voice
    Bonnet.
 
-.. py:attribute:: aiy.pins.LED_2
+.. py:attribute:: src.pins.LED_2
 
    Use this with :class:`gpiozero.LED` to control LED_2 on the Vision/Voice
    Bonnet.
 
-.. py:attribute:: aiy.pins.BUZZER_GPIO_PIN
+.. py:attribute:: src.pins.BUZZER_GPIO_PIN
 
    The pin on the Raspberry Pi where the Vision Kit's piezo buzzer is connected
-   (BCM 22). This should be used with :class:`aiy.toneplayer.TonePlayer`.
+   (BCM 22). This should be used with :class:`src.toneplayer.TonePlayer`.
 
-.. py:attribute:: aiy.pins.BUTTON_GPIO_PIN
+.. py:attribute:: src.pins.BUTTON_GPIO_PIN
 
    The pin on the Raspberry Pi where the Vision/Voice Kit's button is connected
    (BCM 23). This should be used with :class:`gpiozero.Button`.
@@ -91,31 +91,43 @@ from gpiozero.exc import PinSetInput
 from gpiozero.exc import PinUnsupported
 from gpiozero.threads import GPIOThread
 
+
 def get_pin_offset():
-    cmd = 'cat /sys/module/gpio_aiy_io/drivers/platform:gpio-aiy-io/gpio-aiy-io/gpio/gpiochip*/base'
+    cmd = "cat /sys/module/gpio_aiy_io/drivers/platform:gpio-aiy-io/gpio-aiy-io/gpio/gpiochip*/base"
     return int(subprocess.run(cmd, shell=True, capture_output=True).stdout.strip())
+
 
 PIN_OFFSET = get_pin_offset()
 
-class GpioSpec(namedtuple('GpioSpec', ['base', 'offset', 'name', 'active_low'])):
+
+class GpioSpec(namedtuple("GpioSpec", ["base", "offset", "name", "active_low"])):
     @property
     def pin(self):
         return self.base + self.offset
 
     def __str__(self):
-        return 'gpio %s (%d)' % (self.name, self.pin)
+        return "gpio %s (%d)" % (self.name, self.pin)
 
-PwmSpec = namedtuple('PwmSpec', ['pin', 'name'])
-PwmSpec.__str__ = lambda self: 'pwm %d' % self.pin
 
-AIYPinSpec = namedtuple('AIYPinSpec', ['gpio_spec', 'pwm_spec'])
+PwmSpec = namedtuple("PwmSpec", ["pin", "name"])
+PwmSpec.__str__ = lambda self: "pwm %d" % self.pin
 
-PIN_A = AIYPinSpec(GpioSpec(PIN_OFFSET, 2, 'AIY_USER0', active_low=False), PwmSpec(0, 'pwm0'))
-PIN_B = AIYPinSpec(GpioSpec(PIN_OFFSET, 3, 'AIY_USER1', active_low=False), PwmSpec(1, 'pwm1'))
-PIN_C = AIYPinSpec(GpioSpec(PIN_OFFSET, 8, 'AIY_USER2', active_low=False), PwmSpec(2, 'pwm2'))
-PIN_D = AIYPinSpec(GpioSpec(PIN_OFFSET, 9, 'AIY_USER3', active_low=False), PwmSpec(3, 'pwm3'))
-LED_1 = AIYPinSpec(GpioSpec(PIN_OFFSET, 13, 'AIY_LED0', active_low=True), None)
-LED_2 = AIYPinSpec(GpioSpec(PIN_OFFSET, 14, 'AIY_LED1', active_low=True), None)
+AIYPinSpec = namedtuple("AIYPinSpec", ["gpio_spec", "pwm_spec"])
+
+PIN_A = AIYPinSpec(
+    GpioSpec(PIN_OFFSET, 2, "AIY_USER0", active_low=False), PwmSpec(0, "pwm0")
+)
+PIN_B = AIYPinSpec(
+    GpioSpec(PIN_OFFSET, 3, "AIY_USER1", active_low=False), PwmSpec(1, "pwm1")
+)
+PIN_C = AIYPinSpec(
+    GpioSpec(PIN_OFFSET, 8, "AIY_USER2", active_low=False), PwmSpec(2, "pwm2")
+)
+PIN_D = AIYPinSpec(
+    GpioSpec(PIN_OFFSET, 9, "AIY_USER3", active_low=False), PwmSpec(3, "pwm3")
+)
+LED_1 = AIYPinSpec(GpioSpec(PIN_OFFSET, 13, "AIY_LED0", active_low=True), None)
+LED_2 = AIYPinSpec(GpioSpec(PIN_OFFSET, 14, "AIY_LED1", active_low=True), None)
 
 BUZZER_GPIO_PIN = 22
 BUTTON_GPIO_PIN = 23
@@ -137,21 +149,21 @@ class SysFsPin:
             pass
 
     def set_function(self, function):
-        raise NotImplementedError('Setting function not supported')
+        raise NotImplementedError("Setting function not supported")
 
     def get_function(self):
-        raise NotImplementedError('Getting function not supported')
+        raise NotImplementedError("Getting function not supported")
 
     def export(self):
         try:
-            with open(self.root_path('export'), 'w') as export:
-                export.write('%d' % self._pin)
+            with open(self.root_path("export"), "w") as export:
+                export.write("%d" % self._pin)
         except IOError:
-            raise GPIOPinInUse('Pin already in use')
+            raise GPIOPinInUse("Pin already in use")
 
     def unexport(self):
-        with open(self.root_path('unexport'), 'w') as unexport:
-            unexport.write('%d' % self._pin)
+        with open(self.root_path("unexport"), "w") as unexport:
+            unexport.write("%d" % self._pin)
 
     def open(self):
         self.export()
@@ -166,33 +178,33 @@ class SysFsPin:
         newly created node."""
         while True:
             try:
-                with open(self.property_path(prop), 'w'):
+                with open(self.property_path(prop), "w"):
                     pass
                 return
             except IOError:
-                time.sleep(.01)
+                time.sleep(0.01)
 
     def get_value(self):
-        raise NotImplementedError('Value getting not implemented')
+        raise NotImplementedError("Value getting not implemented")
 
     def set_value(self, value):
-        raise NotImplementedError('Value setting not implemented')
+        raise NotImplementedError("Value setting not implemented")
 
     def write_property(self, prop, value):
         """Writes the given sysfs node property to the pin."""
-        with open(self.property_path(prop), 'w') as node:
+        with open(self.property_path(prop), "w") as node:
             node.write(value)
 
     def read_property(self, prop):
         """Reads the given sysfs node property from the pin."""
-        with open(self.property_path(prop), 'r') as node:
+        with open(self.property_path(prop), "r") as node:
             return node.read()
 
     def root_path(self, node):
-        return '%s/%s' % (self._fs_root, node)
+        return "%s/%s" % (self._fs_root, node)
 
     def property_path(self, prop):
-        return '%s/%s/%s' % (self._fs_root, self._name, prop)
+        return "%s/%s/%s" % (self._fs_root, self._name, prop)
 
 
 class SysFsGpioPin(SysFsPin):
@@ -200,57 +212,58 @@ class SysFsGpioPin(SysFsPin):
 
     Supports the SysFs node for GPIO control.
     """
-    _FS_ROOT = '/sys/class/gpio'
+
+    _FS_ROOT = "/sys/class/gpio"
 
     def __init__(self, spec):
         super(SysFsGpioPin, self).__init__(spec, self._FS_ROOT)
         if not isinstance(spec, GpioSpec):
-            raise TypeError('Pin specification not compatible with SysFS GPIO')
+            raise TypeError("Pin specification not compatible with SysFS GPIO")
         self._spec = spec
         self._out = False
         self._value = None
 
     def _get_direction(self):
-        return self.read_property('direction')
+        return self.read_property("direction")
 
     def _set_direction(self, direction):
-        if direction not in ('in', 'out'):
-            raise ValueError('Direction must be either in or out')
-        self.write_property('direction', direction)
+        if direction not in ("in", "out"):
+            raise ValueError("Direction must be either in or out")
+        self.write_property("direction", direction)
 
     def _get_value(self):
-        return self.read_property('value')
+        return self.read_property("value")
 
     def _set_value(self, value):
-        self.write_property('value', value)
+        self.write_property("value", value)
 
     def _get_active_low(self):
-        return self.read_property('active_low')
+        return self.read_property("active_low")
 
     def _set_active_low(self, active_low):
-        self.write_property('active_low', '1' if active_low else '0')
+        self.write_property("active_low", "1" if active_low else "0")
 
     def set_function(self, function):
-        if function == 'input':
-            self._set_direction('in')
+        if function == "input":
+            self._set_direction("in")
             self._out = False
-        elif function == 'output':
-            self._set_direction('out')
+        elif function == "output":
+            self._set_direction("out")
             self._out = True
         else:
-            raise ValueError('pin function must be either input or output')
+            raise ValueError("pin function must be either input or output")
 
     def get_function(self):
         direction = self._get_direction()
-        if direction == 'input':
-            return 'in'
-        if direction == 'output':
-            return 'out'
+        if direction == "input":
+            return "in"
+        if direction == "output":
+            return "out"
 
     def set_value(self, value):
         if not self._out:
-            raise PinSetInput('Pin is not open for output')
-        self._set_value('1' if value else '0')
+            raise PinSetInput("Pin is not open for output")
+        self._set_value("1" if value else "0")
         self._value = value
 
     def get_value(self):
@@ -260,13 +273,13 @@ class SysFsGpioPin(SysFsPin):
 
     def open(self):
         super(SysFsGpioPin, self).open()
-        self.wait_for_permissions('active_low')
-        self.wait_for_permissions('direction')
+        self.wait_for_permissions("active_low")
+        self.wait_for_permissions("direction")
         self._set_active_low(self._spec.active_low)
 
     def close(self):
         # Restore the default direction (turns off LED) before closing.
-        self._set_direction('in')
+        self._set_direction("in")
         super(SysFsGpioPin, self).close()
 
 
@@ -275,7 +288,8 @@ class SysFsPwmPin(SysFsPin):
 
     Supports the SysFs node for pwm control.
     """
-    _FS_ROOT = '/sys/class/pwm/pwmchip0'
+
+    _FS_ROOT = "/sys/class/pwm/pwmchip0"
 
     class PwmState:
         """Container for the state of the pwm.
@@ -292,41 +306,43 @@ class SysFsPwmPin(SysFsPin):
     def __init__(self, spec):
         super(SysFsPwmPin, self).__init__(spec, self._FS_ROOT)
         if not isinstance(spec, PwmSpec):
-            raise TypeError('Pin specification not compatible with SysFS PWM')
+            raise TypeError("Pin specification not compatible with SysFS PWM")
         if spec.pin < 0 or spec.pin > 3:
-            raise ValueError('Pin must be between 0 and 3 (inclusive)')
+            raise ValueError("Pin must be between 0 and 3 (inclusive)")
         self._spec = spec
         self._state = SysFsPwmPin.PwmState()
 
     def _set_enabled(self, enabled):
-        self.write_property('enable', '1' if enabled else '0')
+        self.write_property("enable", "1" if enabled else "0")
         self._state.enabled = enabled
 
     def _get_enabled(self):
-        return int(self.read_property('enable')) != 0
+        return int(self.read_property("enable")) != 0
 
     def _set_period_ns(self, period_ns):
-        self.write_property('period', '%d' % period_ns)
+        self.write_property("period", "%d" % period_ns)
         self._state.period_ns = int(period_ns)
 
     def _get_period_ns(self):
-        return int(self.read_property('period'))
+        return int(self.read_property("period"))
 
     def _set_duty_cycle(self, duty_cycle):
-        self.write_property('duty_cycle', '%d' % duty_cycle)
+        self.write_property("duty_cycle", "%d" % duty_cycle)
         self._state.duty_cycle = duty_cycle
 
     def _get_duty_cycle(self):
-        return int(self.read_property('duty_cycle'))
+        return int(self.read_property("duty_cycle"))
 
     def _update_state(self, new_state):
         # Each time we enable, we need to first re-set the period and duty cycle (in
         # that order).
-        if new_state.period_ns != self._state.period_ns or (not self._state.enabled
-                                                            and new_state.enabled):
+        if new_state.period_ns != self._state.period_ns or (
+            not self._state.enabled and new_state.enabled
+        ):
             self._set_period_ns(new_state.period_ns)
         if new_state.duty_cycle != self._state.duty_cycle or (
-                not self._state.enabled and new_state.enabled):
+            not self._state.enabled and new_state.enabled
+        ):
             self._set_duty_cycle(new_state.duty_cycle)
         if new_state.enabled != self._state.enabled:
             self._set_enabled(new_state.enabled)
@@ -337,9 +353,8 @@ class SysFsPwmPin(SysFsPin):
         self._state.duty_cycle = self._get_duty_cycle()
 
     def set_function(self, function):
-        if function != 'pwm' and function != 'output':
-            raise ValueError(
-                'PWM pins only support pwm and output functionality')
+        if function != "pwm" and function != "output":
+            raise ValueError("PWM pins only support pwm and output functionality")
         self._state.function = function
 
     def get_function(self):
@@ -367,8 +382,8 @@ class SysFsPwmPin(SysFsPin):
 
     def open(self):
         super(SysFsPwmPin, self).open()
-        self.wait_for_permissions('period')
-        self.wait_for_permissions('enable')
+        self.wait_for_permissions("period")
+        self.wait_for_permissions("enable")
         self._read_state()
         new_state = deepcopy(self._state)
         new_state.period_ns = _NS_PER_SECOND / 50
@@ -389,12 +404,13 @@ class DebouncingPoller:
     that detector(old, new) returns true, the callback is called. Only runs while
     detector, getter, and callback are set.
     """
-    _MIN_POLL_INTERVAL = .0001
+
+    _MIN_POLL_INTERVAL = 0.0001
 
     def __init__(self, value_getter, callback, detector=lambda old, new: True):
         self._poll_thread = None
-        self._debounce_time = .001
-        self._poll_interval = .00051
+        self._debounce_time = 0.001
+        self._poll_interval = 0.00051
         self._getter = value_getter
         self._detector = detector
         self._callback = callback
@@ -437,12 +453,17 @@ class DebouncingPoller:
         self.restart_polling()
 
     def try_start_polling(self):
-        if (not self._poll_thread and self._getter and self._callback and
-                self._detector):
+        if not self._poll_thread and self._getter and self._callback and self._detector:
             self._poll_thread = GPIOThread(
                 target=self._poll,
-                args=(self._poll_interval, self._debounce_time, self._getter,
-                      self._detector, self._callback))
+                args=(
+                    self._poll_interval,
+                    self._debounce_time,
+                    self._getter,
+                    self._detector,
+                    self._callback,
+                ),
+            )
             self._poll_thread.start()
 
     def stop_polling(self):
@@ -491,10 +512,11 @@ class HatPin(Pin):
     prevent this, however if multiple programs are running simultaneously the
     protections do not limit cross program duplication.
     """
+
     _EDGE_DETECTORS = {
-        'both': lambda old, new: old != new,
-        'rising': lambda old, new: not old and new,
-        'falling': lambda old, new: old and not new,
+        "both": lambda old, new: old != new,
+        "rising": lambda old, new: not old and new,
+        "falling": lambda old, new: old and not new,
         None: None,
     }
 
@@ -514,7 +536,7 @@ class HatPin(Pin):
         self._closed = False
         self._poller = DebouncingPoller(self._get_state, None)
         self._edges = None
-        self._set_bounce(.001)
+        self._set_bounce(0.001)
         # Start out with gpio enabled for compatibility.
         self._enable_gpio()
 
@@ -527,7 +549,8 @@ class HatPin(Pin):
             return
         if self.pwm_pin is None:
             raise PinPWMUnsupported(
-                'PWM was enabled, but is not supported on pin %r' % self.pwm_pin)
+                "PWM was enabled, but is not supported on pin %r" % self.pwm_pin
+            )
         self._disable_gpio()
         if not self.pwm_active:
             self.pwm_pin.open()
@@ -543,7 +566,8 @@ class HatPin(Pin):
             return
         if self.gpio_pin is None:
             raise PinUnsupported(
-                'GPIO was enabled, but is not supported on pin %r' % self.gpio_pin)
+                "GPIO was enabled, but is not supported on pin %r" % self.gpio_pin
+            )
         self._disable_pwm()
         if not self.gpio_active:
             self.gpio_pin.open()
@@ -571,18 +595,18 @@ class HatPin(Pin):
         return self._active_pin().get_function()
 
     def _set_function(self, value):
-        if value == 'input':
+        if value == "input":
             if self.pwm_active:
-                raise InputDeviceError('PWM Pin cannot be set to input')
+                raise InputDeviceError("PWM Pin cannot be set to input")
             self._enable_gpio()
-        elif value == 'pwm':
+        elif value == "pwm":
             if self.gpio_active:
-                raise PinPWMUnsupported('GPIO Pin cannot be set to pwm')
+                raise PinPWMUnsupported("GPIO Pin cannot be set to pwm")
             self._enable_pwm()
         elif self._active_pin() is None:
             self._enable_gpio()
 
-        if value != 'input':
+        if value != "input":
             self._poller.stop_polling()
         self._active_pin().set_function(value)
 
@@ -605,17 +629,15 @@ class HatPin(Pin):
             self.pwm_pin.set_period_ns(_NS_PER_SECOND / frequency)
 
     def _set_pull(self, pull):
-        if pull != 'up':
-            raise PinFixedPull(
-                'Only pull up is supported right now (%s)' % pull)
+        if pull != "up":
+            raise PinFixedPull("Only pull up is supported right now (%s)" % pull)
 
     def _get_pull(self):
-        return 'up'
+        return "up"
 
     def _set_edges(self, edges):
         if edges not in HatPin._EDGE_DETECTORS.keys():
-            raise PinInvalidEdges(
-                'Edge must be "both", "falling", "rising", or None')
+            raise PinInvalidEdges('Edge must be "both", "falling", "rising", or None')
         self._poller.detector = HatPin._EDGE_DETECTORS[edges]
         self._edges = edges
 
@@ -643,10 +665,10 @@ class HatPin(Pin):
         if debounce_time is None:
             self._poller.debounce_time = debounce_time
         elif debounce_time < 0:
-            raise PinInvalidBounce('Bounce must be positive.')
+            raise PinInvalidBounce("Bounce must be positive.")
         else:
             self._poller.debounce_time = debounce_time
-            self.set_poll_interval(debounce_time * .51)
+            self.set_poll_interval(debounce_time * 0.51)
 
     def _get_bounce(self):
         return self._poller.debounce_time
@@ -671,8 +693,9 @@ class HybridFactory(Factory):
             except (TypeError, ValueError):
                 pass
         raise TypeError(
-            'No registered factory was able to construct a pin for the given '
-            'specification')
+            "No registered factory was able to construct a pin for the given "
+            "specification"
+        )
 
     def ticks(self):
         return time.monotonic()
@@ -683,6 +706,7 @@ class HybridFactory(Factory):
 
 class HatFactory(Factory):
     """Factory for pins accessed through the hat's MCU."""
+
     pins = {}
 
     def __init__(self):
@@ -701,7 +725,7 @@ class HatFactory(Factory):
             pin = HatPin(spec)
             self.pins[spec] = pin
             return pin
-        raise TypeError('Hat factory invoked on non-hat pin')
+        raise TypeError("Hat factory invoked on non-hat pin")
 
 
 # This overrides the default factory being used by all gpiozero devices. It will

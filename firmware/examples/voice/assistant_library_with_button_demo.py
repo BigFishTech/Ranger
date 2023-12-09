@@ -33,9 +33,9 @@ import threading
 
 from google.assistant.library.event import EventType
 
-from aiy.assistant import auth_helpers
-from aiy.assistant.library import Assistant
-from aiy.board import Board, Led
+from src.assistant import auth_helpers
+from src.assistant.library import Assistant
+from src.board import Board, Led
 
 
 class MyAssistant:
@@ -73,8 +73,10 @@ class MyAssistant:
             self._board.led.status = Led.BEACON_DARK  # Ready.
             self._can_start_conversation = True
             # Start the voicehat button trigger.
-            logging.info('Say "OK, Google" or press the button, then speak. '
-                         'Press Ctrl+C to quit...')
+            logging.info(
+                'Say "OK, Google" or press the button, then speak. '
+                "Press Ctrl+C to quit..."
+            )
 
         elif event.type == EventType.ON_CONVERSATION_TURN_STARTED:
             self._can_start_conversation = False
@@ -83,13 +85,19 @@ class MyAssistant:
         elif event.type == EventType.ON_END_OF_UTTERANCE:
             self._board.led.state = Led.PULSE_QUICK  # Thinking.
 
-        elif (event.type == EventType.ON_CONVERSATION_TURN_FINISHED
-              or event.type == EventType.ON_CONVERSATION_TURN_TIMEOUT
-              or event.type == EventType.ON_NO_RESPONSE):
+        elif (
+            event.type == EventType.ON_CONVERSATION_TURN_FINISHED
+            or event.type == EventType.ON_CONVERSATION_TURN_TIMEOUT
+            or event.type == EventType.ON_NO_RESPONSE
+        ):
             self._board.led.state = Led.BEACON_DARK  # Ready.
             self._can_start_conversation = True
 
-        elif event.type == EventType.ON_ASSISTANT_ERROR and event.args and event.args['is_fatal']:
+        elif (
+            event.type == EventType.ON_ASSISTANT_ERROR
+            and event.args
+            and event.args["is_fatal"]
+        ):
             sys.exit(1)
 
     def _on_button_pressed(self):
@@ -106,5 +114,5 @@ def main():
     MyAssistant().start()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

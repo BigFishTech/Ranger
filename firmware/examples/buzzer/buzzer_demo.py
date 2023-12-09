@@ -15,39 +15,39 @@
 
 """A demo of the Piezo Buzzer."""
 
-import aiy.toneplayer
+import src.toneplayer
 
 
 def main():
     tetris_theme = [
-        'E5q',
-        'Be',
-        'C5e',
-        'D5e',
-        'E5s',
-        'D5s',
-        'C5s',
-        'Be',
-        'Bs',
-        'Aq',
-        'Ae',
-        'C5e',
-        'E5q',
-        'D5e',
-        'C5e',
-        'Bq',
-        'Be',
-        'C5e',
-        'D5q',
-        'E5q',
-        'C5q',
-        'Aq',
-        'Aq',
+        "E5q",
+        "Be",
+        "C5e",
+        "D5e",
+        "E5s",
+        "D5s",
+        "C5s",
+        "Be",
+        "Bs",
+        "Aq",
+        "Ae",
+        "C5e",
+        "E5q",
+        "D5e",
+        "C5e",
+        "Bq",
+        "Be",
+        "C5e",
+        "D5q",
+        "E5q",
+        "C5q",
+        "Aq",
+        "Aq",
     ]
 
-    player = aiy.toneplayer.TonePlayer(22)
+    player = src.toneplayer.TonePlayer(22)
     player.play(*tetris_theme)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

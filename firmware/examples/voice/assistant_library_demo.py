@@ -32,9 +32,10 @@ import sys
 
 from google.assistant.library.event import EventType
 
-from aiy.assistant import auth_helpers
-from aiy.assistant.library import Assistant
-from aiy.board import Board, Led
+from src.assistant import auth_helpers
+from src.assistant.library import Assistant
+from src.board import Board, Led
+
 
 def process_event(led, event):
     logging.info(event)
@@ -49,12 +50,18 @@ def process_event(led, event):
     elif event.type == EventType.ON_END_OF_UTTERANCE:
         led.state = Led.PULSE_QUICK  # Thinking.
 
-    elif (event.type == EventType.ON_CONVERSATION_TURN_FINISHED
-          or event.type == EventType.ON_CONVERSATION_TURN_TIMEOUT
-          or event.type == EventType.ON_NO_RESPONSE):
+    elif (
+        event.type == EventType.ON_CONVERSATION_TURN_FINISHED
+        or event.type == EventType.ON_CONVERSATION_TURN_TIMEOUT
+        or event.type == EventType.ON_NO_RESPONSE
+    ):
         led.state = Led.BEACON_DARK
 
-    elif event.type == EventType.ON_ASSISTANT_ERROR and event.args and event.args['is_fatal']:
+    elif (
+        event.type == EventType.ON_ASSISTANT_ERROR
+        and event.args
+        and event.args["is_fatal"]
+    ):
         sys.exit(1)
 
 
@@ -67,5 +74,5 @@ def main():
             process_event(board.led, event)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -48,8 +48,8 @@ import sys
 import time
 from PIL import Image
 
-from aiy.vision.inference import ImageInference
-from aiy.vision.models import image_classification
+from src.vision.inference import ImageInference
+from src.vision.models import image_classification
 
 
 def crop_parameters(im, range_x=(0, 1), range_y=(0, 1)):
@@ -75,30 +75,32 @@ def debug_output(image, debug_data, out_dir, filename=None):
     """Outputs debug output if --debug is specified."""
     global debug_idx
     if debug_idx == 0:
-        for filepath in [f for f in os.listdir(out_dir) if f.startswith('image_')]:
+        for filepath in [f for f in os.listdir(out_dir) if f.startswith("image_")]:
             try:
                 path_idx = int(filepath[6:12]) + 1
                 debug_idx = max(debug_idx, path_idx)
             except BaseException:
                 pass
-    print('debug_idx:', debug_idx)
+    print("debug_idx:", debug_idx)
     if filename is None:
-        output_path = os.path.join(out_dir, 'image_%06d.jpg' % debug_idx)
+        output_path = os.path.join(out_dir, "image_%06d.jpg" % debug_idx)
         debug_idx += 1
     else:
         output_path = os.path.join(out_dir, filename)
     image.save(output_path)
-    with open(output_path + '_classes.txt', 'w') as f:
+    with open(output_path + "_classes.txt", "w") as f:
         for debug_tuple in debug_data:
-            f.write('%s + %s Result %d: %s (prob=%f)\n' % debug_tuple)
-    with open(output_path + '_classes.pkl', 'wb') as f:
+            f.write("%s + %s Result %d: %s (prob=%f)\n" % debug_tuple)
+    with open(output_path + "_classes.pkl", "wb") as f:
         pickle.dump(debug_data, f, protocol=0)
 
 
-def detect_object(inference, camera, classes, threshold, out_dir, range_x=[0, 1], range_y=[0, 1]):
+def detect_object(
+    inference, camera, classes, threshold, out_dir, range_x=[0, 1], range_y=[0, 1]
+):
     """Detects objects belonging to given classes in camera stream."""
     stream = io.BytesIO()
-    camera.capture(stream, format='jpeg')
+    camera.capture(stream, format="jpeg")
     stream.seek(0)
     image = Image.open(stream)
 
@@ -112,13 +114,14 @@ def detect_object(inference, camera, classes, threshold, out_dir, range_x=[0, 1]
 
     debug_data = []
     detection = False
-    max_accumulator = 0.
-    print('Inferring...')
+    max_accumulator = 0.0
+    print("Inferring...")
     for p in crop_parameters(image, range_x, range_y):
         im_crop = image.crop(p)
-        accumulator = 0.
+        accumulator = 0.0
         infer_classes = image_classification.get_classes(
-            inference.run(im_crop), top_k=5, threshold=0.05)
+            inference.run(im_crop), top_k=5, threshold=0.05
+        )
         corner = [p[0], p[1]]
         print(corner)
         for idx, (label, score) in enumerate(infer_classes):
@@ -132,60 +135,46 @@ def detect_object(inference, camera, classes, threshold, out_dir, range_x=[0, 1]
             break
     if out_dir:
         debug_output(image, debug_data, out_dir)
-    print('Accumulator: %f' % (max_accumulator))
-    print('Detection!' if detection else 'Non Detection')
+    print("Accumulator: %f" % (max_accumulator))
+    print("Detection!" if detection else "Non Detection")
     return detection, image, debug_data
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--classfile', '-c', dest='classfile', required=True)
+    parser.add_argument("--classfile", "-c", dest="classfile", required=True)
     parser.add_argument(
-        '--threshold',
-        '-t',
-        dest='threshold',
-        required=False,
-        type=float,
-        default=0.5)
-    parser.add_argument('--out_dir', '-o', dest='out_dir', required=False, type=str, default='./')
+        "--threshold", "-t", dest="threshold", required=False, type=float, default=0.5
+    )
     parser.add_argument(
-        '--capture_delay',
-        dest='capture_delay',
-        required=False,
-        type=float,
-        default=5.0)
+        "--out_dir", "-o", dest="out_dir", required=False, type=str, default="./"
+    )
     parser.add_argument(
-        '--capture_length',
-        dest='capture_length',
-        required=False,
-        type=int,
-        default=20)
-    parser.add_argument('--debug', '-d', dest='debug', required=False, action='store_true')
+        "--capture_delay", dest="capture_delay", required=False, type=float, default=5.0
+    )
+    parser.add_argument(
+        "--capture_length", dest="capture_length", required=False, type=int, default=20
+    )
+    parser.add_argument(
+        "--debug", "-d", dest="debug", required=False, action="store_true"
+    )
     # Crop box in fraction of the image width. By default full camera image is processed.
     parser.add_argument(
-        '--cropbox_left',
-        dest='cropbox_left',
-        required=False,
-        type=float,
-        default=0.0)
+        "--cropbox_left", dest="cropbox_left", required=False, type=float, default=0.0
+    )
     parser.add_argument(
-        '--cropbox_right',
-        dest='cropbox_right',
-        required=False,
-        type=float,
-        default=1.0)
+        "--cropbox_right", dest="cropbox_right", required=False, type=float, default=1.0
+    )
     parser.add_argument(
-        '--cropbox_top',
-        dest='cropbox_top',
-        required=False,
-        type=float,
-        default=0.0)
+        "--cropbox_top", dest="cropbox_top", required=False, type=float, default=0.0
+    )
     parser.add_argument(
-        '--cropbox_bottom',
-        dest='cropbox_bottom',
+        "--cropbox_bottom",
+        dest="cropbox_bottom",
         required=False,
         type=float,
-        default=1.0)
+        default=1.0,
+    )
     parser.set_defaults(debug=False)
     args = parser.parse_args()
 
@@ -200,35 +189,42 @@ def main():
     with open(args.classfile) as f:
         classes = [line.strip() for line in f]
 
-    print('Starting camera detection, using the following classes:')
+    print("Starting camera detection, using the following classes:")
     for label in classes:
-        print('  ', label)
-    print('Threshold:', args.threshold)
-    print('Debug mode:', args.debug)
-    print('Capture Delay:', args.capture_delay)
+        print("  ", label)
+    print("Threshold:", args.threshold)
+    print("Debug mode:", args.debug)
+    print("Capture Delay:", args.capture_delay)
 
-    debug_out = args.out_dir if args.debug else ''
+    debug_out = args.out_dir if args.debug else ""
 
     with ImageInference(image_classification.model(model_type)) as inference:
         with picamera.PiCamera(resolution=(1920, 1080)) as camera:
             stream = picamera.PiCameraCircularIO(camera, seconds=args.capture_length)
-            camera.start_recording(stream, format='h264')
+            camera.start_recording(stream, format="h264")
             while True:
                 detection, image, inference_data = detect_object(
-                    inference, camera, classes, args.threshold, debug_out,
+                    inference,
+                    camera,
+                    classes,
+                    args.threshold,
+                    debug_out,
                     (args.cropbox_left, args.cropbox_right),
-                    (args.cropbox_top, args.cropbox_bottom))
+                    (args.cropbox_top, args.cropbox_bottom),
+                )
                 if detection:
                     detect_time = int(time.time())
                     camera.wait_recording(args.capture_delay)
-                    video_file = 'capture_%d.mpeg' % detect_time
-                    image_file = 'capture_%d.jpg' % detect_time
+                    video_file = "capture_%d.mpeg" % detect_time
+                    image_file = "capture_%d.jpg" % detect_time
                     stream.copy_to(os.path.join(args.out_dir, video_file))
                     stream.flush()
                     debug_output(image, inference_data, args.out_dir, image_file)
-                    print('Wrote video file to', os.path.join(args.out_dir, video_file))
-                    camera.wait_recording(max(args.capture_length - args.capture_delay, 0))
+                    print("Wrote video file to", os.path.join(args.out_dir, video_file))
+                    camera.wait_recording(
+                        max(args.capture_length - args.capture_delay, 0)
+                    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

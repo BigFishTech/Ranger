@@ -28,24 +28,25 @@ import sys
 
 from google.assistant.library.event import EventType
 
-from aiy.assistant import auth_helpers
-from aiy.assistant.library import Assistant
-from aiy.board import Board, Led
-from aiy.voice import tts
+from src.assistant import auth_helpers
+from src.assistant.library import Assistant
+from src.board import Board, Led
+from src.voice import tts
+
 
 def power_off_pi():
-    tts.say('Good bye!')
-    subprocess.call('sudo shutdown now', shell=True)
+    tts.say("Good bye!")
+    subprocess.call("sudo shutdown now", shell=True)
 
 
 def reboot_pi():
-    tts.say('See you in a bit!')
-    subprocess.call('sudo reboot', shell=True)
+    tts.say("See you in a bit!")
+    subprocess.call("sudo reboot", shell=True)
 
 
 def say_ip():
     ip_address = subprocess.check_output("hostname -I | cut -d' ' -f1", shell=True)
-    tts.say('My IP address is %s' % ip_address.decode('utf-8'))
+    tts.say("My IP address is %s" % ip_address.decode("utf-8"))
 
 
 def process_event(assistant, led, event):
@@ -56,24 +57,30 @@ def process_event(assistant, led, event):
     elif event.type == EventType.ON_CONVERSATION_TURN_STARTED:
         led.state = Led.ON  # Listening.
     elif event.type == EventType.ON_RECOGNIZING_SPEECH_FINISHED and event.args:
-        print('You said:', event.args['text'])
-        text = event.args['text'].lower()
-        if text == 'power off':
+        print("You said:", event.args["text"])
+        text = event.args["text"].lower()
+        if text == "power off":
             assistant.stop_conversation()
             power_off_pi()
-        elif text == 'reboot':
+        elif text == "reboot":
             assistant.stop_conversation()
             reboot_pi()
-        elif text == 'ip address':
+        elif text == "ip address":
             assistant.stop_conversation()
             say_ip()
     elif event.type == EventType.ON_END_OF_UTTERANCE:
         led.state = Led.PULSE_QUICK  # Thinking.
-    elif (event.type == EventType.ON_CONVERSATION_TURN_FINISHED
-          or event.type == EventType.ON_CONVERSATION_TURN_TIMEOUT
-          or event.type == EventType.ON_NO_RESPONSE):
+    elif (
+        event.type == EventType.ON_CONVERSATION_TURN_FINISHED
+        or event.type == EventType.ON_CONVERSATION_TURN_TIMEOUT
+        or event.type == EventType.ON_NO_RESPONSE
+    ):
         led.state = Led.BEACON_DARK  # Ready.
-    elif event.type == EventType.ON_ASSISTANT_ERROR and event.args and event.args['is_fatal']:
+    elif (
+        event.type == EventType.ON_ASSISTANT_ERROR
+        and event.args
+        and event.args["is_fatal"]
+    ):
         sys.exit(1)
 
 
@@ -86,5 +93,5 @@ def main():
             process_event(assistant, board.led, event)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -28,36 +28,43 @@ import argparse
 
 from picamera import PiCamera
 
-from aiy.vision.inference import CameraInference, ModelDescriptor
-from aiy.vision.models import utils
+from src.vision.inference import CameraInference, ModelDescriptor
+from src.vision.models import utils
+
 
 def tensors_info(tensors):
-    return ', '.join('%s [%d elements]' % (name, len(tensor.data))
-        for name, tensor in tensors.items())
+    return ", ".join(
+        "%s [%d elements]" % (name, len(tensor.data))
+        for name, tensor in tensors.items()
+    )
+
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model_name', default='test_model', help='Model identifier.')
-    parser.add_argument('--model_path', required=True, help='Path to model file.')
-    parser.add_argument('--input_height', type=int, required=True, help='Input height.')
-    parser.add_argument('--input_width', type=int, required=True, help='Input width.')
-    parser.add_argument('--input_depth', type=int, default=3, help='Input depth.')
-    parser.add_argument('--input_mean', type=float, default=128.0, help='Input mean.')
-    parser.add_argument('--input_std', type=float, default=128.0, help='Input std.')
+    parser.add_argument("--model_name", default="test_model", help="Model identifier.")
+    parser.add_argument("--model_path", required=True, help="Path to model file.")
+    parser.add_argument("--input_height", type=int, required=True, help="Input height.")
+    parser.add_argument("--input_width", type=int, required=True, help="Input width.")
+    parser.add_argument("--input_depth", type=int, default=3, help="Input depth.")
+    parser.add_argument("--input_mean", type=float, default=128.0, help="Input mean.")
+    parser.add_argument("--input_std", type=float, default=128.0, help="Input std.")
     args = parser.parse_args()
 
     model = ModelDescriptor(
         name=args.model_name,
         input_shape=(1, args.input_height, args.input_width, args.input_depth),
         input_normalizer=(args.input_mean, args.input_std),
-        compute_graph=utils.load_compute_graph(args.model_path))
+        compute_graph=utils.load_compute_graph(args.model_path),
+    )
 
     with PiCamera(sensor_mode=4, framerate=30):
         with CameraInference(model) as inference:
             for result in inference.run():
-                print('#%05d (%5.2f fps): %s' %
-                    (inference.count, inference.rate, tensors_info(result.tensors)))
+                print(
+                    "#%05d (%5.2f fps): %s"
+                    % (inference.count, inference.rate, tensors_info(result.tensors))
+                )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

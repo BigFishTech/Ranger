@@ -22,8 +22,8 @@ import argparse
 
 from PIL import Image, ImageDraw
 
-from aiy.vision.inference import ImageInference
-from aiy.vision.models import object_detection
+from src.vision.inference import ImageInference
+from src.vision.models import object_detection
 
 
 def crop_center(image):
@@ -34,15 +34,25 @@ def crop_center(image):
 
 
 def main():
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--input', '-i', dest='input', required=True,
-                        help='Input image file.')
-    parser.add_argument('--output', '-o', dest='output',
-                        help='Output image file with bounding boxes.')
-    parser.add_argument('--sparse', '-s', action='store_true', default=False,
-                        help='Use sparse tensors.')
-    parser.add_argument('--threshold', '-t', type=float, default=0.3,
-                        help='Detection probability threshold.')
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    parser.add_argument(
+        "--input", "-i", dest="input", required=True, help="Input image file."
+    )
+    parser.add_argument(
+        "--output", "-o", dest="output", help="Output image file with bounding boxes."
+    )
+    parser.add_argument(
+        "--sparse", "-s", action="store_true", default=False, help="Use sparse tensors."
+    )
+    parser.add_argument(
+        "--threshold",
+        "-t",
+        type=float,
+        default=0.3,
+        help="Detection probability threshold.",
+    )
     args = parser.parse_args()
 
     with ImageInference(object_detection.model()) as inference:
@@ -50,23 +60,25 @@ def main():
         image_center, offset = crop_center(image)
 
         if args.sparse:
-            result = inference.run(image_center,
-                                   sparse_configs=object_detection.sparse_configs(args.threshold))
+            result = inference.run(
+                image_center,
+                sparse_configs=object_detection.sparse_configs(args.threshold),
+            )
             objects = object_detection.get_objects_sparse(result, offset)
         else:
             result = inference.run(image_center)
             objects = object_detection.get_objects(result, args.threshold, offset)
 
         for i, obj in enumerate(objects):
-            print('Object #%d: %s' % (i, obj))
+            print("Object #%d: %s" % (i, obj))
 
         if args.output:
             draw = ImageDraw.Draw(image)
             for i, obj in enumerate(objects):
                 x, y, width, height = obj.bounding_box
-                draw.rectangle((x, y, x + width, y + height), outline='red')
+                draw.rectangle((x, y, x + width, y + height), outline="red")
             image.save(args.output)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

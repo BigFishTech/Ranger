@@ -17,8 +17,8 @@
 
 import sys
 
-from aiy.toneplayer import Note
-from aiy.trackplayer import NoteOff, Arpeggio, StopPlaying, TrackPlayer, TrackLoader
+from src.toneplayer import Note
+from src.trackplayer import NoteOff, Arpeggio, StopPlaying, TrackPlayer, TrackLoader
 
 
 def main():
@@ -31,5 +31,5 @@ def main():
     player.play()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

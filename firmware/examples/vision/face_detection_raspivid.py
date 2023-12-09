@@ -25,16 +25,19 @@ import argparse
 import subprocess
 
 from contextlib import contextmanager
-from aiy.vision.inference import CameraInference
-from aiy.vision.models import face_detection
+from src.vision.inference import CameraInference
+from src.vision.models import face_detection
+
 
 def avg_joy_score(faces):
     if faces:
         return sum(face.joy_score for face in faces) / len(faces)
     return 0.0
 
+
 def raspivid_cmd(sensor_mode):
-    return ('raspivid', '--mode', str(sensor_mode), '--timeout', '0', '--nopreview')
+    return ("raspivid", "--mode", str(sensor_mode), "--timeout", "0", "--nopreview")
+
 
 @contextmanager
 def Process(cmd):
@@ -45,18 +48,28 @@ def Process(cmd):
         process.terminate()
         process.wait()
 
+
 def main():
-    parser = argparse.ArgumentParser('Face detection using raspivid.')
-    parser.add_argument('--num_frames', '-n', type=int, default=None,
-        help='Sets the number of frames to run for, otherwise runs forever.')
+    parser = argparse.ArgumentParser("Face detection using raspivid.")
+    parser.add_argument(
+        "--num_frames",
+        "-n",
+        type=int,
+        default=None,
+        help="Sets the number of frames to run for, otherwise runs forever.",
+    )
     args = parser.parse_args()
 
-    with Process(raspivid_cmd(sensor_mode=4)), \
-         CameraInference(face_detection.model()) as inference:
+    with Process(raspivid_cmd(sensor_mode=4)), CameraInference(
+        face_detection.model()
+    ) as inference:
         for result in inference.run(args.num_frames):
             faces = face_detection.get_faces(result)
-            print('#%05d (%5.2f fps): num_faces=%d, avg_joy_score=%.2f' %
-                (inference.count, inference.rate, len(faces), avg_joy_score(faces)))
+            print(
+                "#%05d (%5.2f fps): num_faces=%d, avg_joy_score=%.2f"
+                % (inference.count, inference.rate, len(faces), avg_joy_score(faces))
+            )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

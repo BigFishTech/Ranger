@@ -27,38 +27,33 @@ import google.auth.transport
 import google.oauth2.credentials
 
 
-_ASSISTANT_OAUTH_SCOPE = (
-    'https://www.googleapis.com/auth/assistant-sdk-prototype'
-)
+_ASSISTANT_OAUTH_SCOPE = "https://www.googleapis.com/auth/assistant-sdk-prototype"
 
 # Legacy fallback: old locations of secrets/credentials.
-_OLD_CLIENT_SECRETS = os.path.expanduser('~/client_secrets.json')
-_OLD_SERVICE_CREDENTIALS = os.path.expanduser('~/credentials.json')
+_OLD_CLIENT_SECRETS = os.path.expanduser("~/client_secrets.json")
+_OLD_SERVICE_CREDENTIALS = os.path.expanduser("~/credentials.json")
 
-_CACHE_DIR = os.getenv('XDG_CACHE_HOME') or os.path.expanduser('~/.cache')
-_VR_CACHE_DIR = os.path.join(_CACHE_DIR, 'voice-recognizer')
+_CACHE_DIR = os.getenv("XDG_CACHE_HOME") or os.path.expanduser("~/.cache")
+_VR_CACHE_DIR = os.path.join(_CACHE_DIR, "voice-recognizer")
 
-_ASSISTANT_CREDENTIALS = (
-    os.path.join(_VR_CACHE_DIR, 'assistant_credentials.json')
-)
+_ASSISTANT_CREDENTIALS = os.path.join(_VR_CACHE_DIR, "assistant_credentials.json")
 
 # Expected location of the Assistant credentials file:
-_ASSISTANT_CREDENTIALS_FILE = os.path.expanduser('~/assistant.json')
+_ASSISTANT_CREDENTIALS_FILE = os.path.expanduser("~/assistant.json")
 
 
 def _load_credentials(credentials_path):
     migrate = False
-    with open(credentials_path, 'r') as f:
+    with open(credentials_path, "r") as f:
         credentials_data = json.load(f)
-        if 'access_token' in credentials_data:
+        if "access_token" in credentials_data:
             migrate = True
-            del credentials_data['access_token']
-            credentials_data['scopes'] = [_ASSISTANT_OAUTH_SCOPE]
+            del credentials_data["access_token"]
+            credentials_data["scopes"] = [_ASSISTANT_OAUTH_SCOPE]
     if migrate:
-        with open(credentials_path, 'w') as f:
+        with open(credentials_path, "w") as f:
             json.dump(credentials_data, f)
-    credentials = google.oauth2.credentials.Credentials(token=None,
-                                                        **credentials_data)
+    credentials = google.oauth2.credentials.Credentials(token=None, **credentials_data)
     http_request = google.auth.transport.requests.Request()
     credentials.refresh(http_request)
     return credentials
@@ -66,13 +61,18 @@ def _load_credentials(credentials_path):
 
 def _credentials_flow_interactive(client_secrets_path):
     flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(
-        client_secrets_path,
-        scopes=[_ASSISTANT_OAUTH_SCOPE])
-    if 'DISPLAY' in os.environ:
+        client_secrets_path, scopes=[_ASSISTANT_OAUTH_SCOPE]
+    )
+    if "DISPLAY" in os.environ:
         # Use chromium-browser by default. Raspbian Stretch uses Epiphany by
         # default but that seems to cause issues:
         # https://github.com/google/aiyprojects-raspbian/issues/269
-        webbrowser.register('chromium-browser', None, webbrowser.Chrome('chromium-browser'), preferred=True)
+        webbrowser.register(
+            "chromium-browser",
+            None,
+            webbrowser.Chrome("chromium-browser"),
+            preferred=True,
+        )
         credentials = flow.run_local_server()
     else:
         credentials = flow.run_console()
@@ -83,14 +83,17 @@ def _save_credentials(credentials_path, credentials):
     config_path = os.path.dirname(credentials_path)
     if not os.path.isdir(config_path):
         os.makedirs(config_path)
-    with open(credentials_path, 'w') as f:
-        json.dump({
-            'refresh_token': credentials.refresh_token,
-            'token_uri': credentials.token_uri,
-            'client_id': credentials.client_id,
-            'client_secret': credentials.client_secret,
-            'scopes': credentials.scopes
-        }, f)
+    with open(credentials_path, "w") as f:
+        json.dump(
+            {
+                "refresh_token": credentials.refresh_token,
+                "token_uri": credentials.token_uri,
+                "client_id": credentials.client_id,
+                "client_secret": credentials.client_secret,
+                "scopes": credentials.scopes,
+            },
+            f,
+        )
 
 
 def _try_to_get_credentials(client_secrets):
@@ -106,23 +109,27 @@ def _try_to_get_credentials(client_secrets):
         client_secrets = _OLD_CLIENT_SECRETS
 
     if not os.path.exists(client_secrets):
-        print('You need client secrets to use the Assistant API.')
-        print('Follow these instructions:')
-        print('    https://developers.google.com/api-client-library/python/auth/installed-app'
-              '#creatingcred')
-        print('and put the file at', client_secrets)
+        print("You need client secrets to use the Assistant API.")
+        print("Follow these instructions:")
+        print(
+            "    https://developers.google.com/api-client-library/python/auth/installed-app"
+            "#creatingcred"
+        )
+        print("and put the file at", client_secrets)
         sys.exit(1)
 
-    if not os.getenv('DISPLAY') and not sys.stdout.isatty():
-        print("""
+    if not os.getenv("DISPLAY") and not sys.stdout.isatty():
+        print(
+            """
 To use the Assistant API, manually start the application from the dev terminal.
 See the "Turn on the Assistant API" section of the Voice Recognizer
-User's Guide for more info.""")
+User's Guide for more info."""
+        )
         sys.exit(1)
 
     credentials = _credentials_flow_interactive(client_secrets)
     _save_credentials(_ASSISTANT_CREDENTIALS, credentials)
-    logging.info('OAuth credentials initialized: %s', _ASSISTANT_CREDENTIALS)
+    logging.info("OAuth credentials initialized: %s", _ASSISTANT_CREDENTIALS)
     return credentials
 
 
@@ -130,11 +137,11 @@ def get_assistant_credentials(credentials_file=None):
     """
     Retreives the OAuth credentials required to access the Google Assistant API.
 
-    If you're using :mod:`aiy.assistant.library`, you must call this function and pass the result
-    to the :class:`~aiy.assistant.library.Assistant` constructor.
+    If you're using :mod:`src.assistant.library`, you must call this function and pass the result
+    to the :class:`~src.assistant.library.Assistant` constructor.
 
-    If you're using :mod:`aiy.assistant.grpc`, you do not need this function because the
-    :class:`~aiy.assistant.grpc.AssistantServiceClient` calls this during initialization (using the
+    If you're using :mod:`src.assistant.grpc`, you do not need this function because the
+    :class:`~src.assistant.grpc.AssistantServiceClient` calls this during initialization (using the
     credentials file at ``~/assistant.json``).
 
     Args:

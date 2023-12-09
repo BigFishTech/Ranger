@@ -42,12 +42,12 @@ to handle each of the response events.
     `Google Assistant Library for Python documentation
     <https://developers.google.com/assistant/sdk/reference/library/python/>`_.
 
-    To get started, you must call :meth:`~aiy.assistant.auth_helpers.get_assistant_credentials`
+    To get started, you must call :meth:`~src.assistant.auth_helpers.get_assistant_credentials`
     and pass the result to the ``Assistant`` constructor. For example::
 
         from google.assistant.library.event import EventType
-        from aiy.assistant import auth_helpers
-        from aiy.assistant.library import Assistant
+        from src.assistant import auth_helpers
+        from src.assistant.library import Assistant
 
         credentials = auth_helpers.get_assistant_credentials()
         with Assistant(credentials) as assistant:
@@ -57,12 +57,13 @@ to handle each of the response events.
     For more example code, see :github:`src/examples/voice/assistant_library_demo.py`.
 
     :param credentials: The Google OAuth2 credentials for the device. Get this from
-        :meth:`~aiy.assistant.auth_helpers.get_assistant_credentials`.
+        :meth:`~src.assistant.auth_helpers.get_assistant_credentials`.
 """
 
 import google.assistant.library
 
-from aiy.assistant import device_helpers
+from src.assistant import device_helpers
+
 
 class Assistant(google.assistant.library.Assistant):
     """Client for the Google Assistant Library.
@@ -81,6 +82,7 @@ class Assistant(google.assistant.library.Assistant):
         events = super().start()
 
         device_helpers.register_device_id(
-            self._credentials, self._model_id, self.device_id, "SDK_LIBRARY")
+            self._credentials, self._model_id, self.device_id, "SDK_LIBRARY"
+        )
 
         return events

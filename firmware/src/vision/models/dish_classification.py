@@ -13,23 +13,25 @@
 # limitations under the License.
 """API for Dish Classification."""
 
-from aiy.vision.inference import ModelDescriptor
-from aiy.vision.models import utils
+from src.vision.inference import ModelDescriptor
+from src.vision.models import utils
 
-_COMPUTE_GRAPH_NAME = 'mobilenet_v1_192res_1.0_seefood.binaryproto'
-_CLASSES = utils.load_labels('mobilenet_v1_192res_1.0_seefood_labels.txt')
+_COMPUTE_GRAPH_NAME = "mobilenet_v1_192res_1.0_seefood.binaryproto"
+_CLASSES = utils.load_labels("mobilenet_v1_192res_1.0_seefood_labels.txt")
+
 
 def model():
     return ModelDescriptor(
-        name='dish_classification',
+        name="dish_classification",
         input_shape=(1, 192, 192, 3),
         input_normalizer=(128.0, 128.0),
-        compute_graph=utils.load_compute_graph(_COMPUTE_GRAPH_NAME))
+        compute_graph=utils.load_compute_graph(_COMPUTE_GRAPH_NAME),
+    )
 
 
 def _get_probs(result):
     assert len(result.tensors) == 1
-    tensor = result.tensors['MobilenetV1/Predictions/Softmax']
+    tensor = result.tensors["MobilenetV1/Predictions/Softmax"]
     assert utils.shape_tuple(tensor.shape) == (1, 1, 1, 2024)
     return tuple(tensor.data)
 
@@ -55,4 +57,4 @@ def get_classes(result, top_k=None, threshold=0.0):
     pairs = [pair for pair in enumerate(probs) if pair[1] > threshold]
     pairs = sorted(pairs, key=lambda pair: pair[1], reverse=True)
     pairs = pairs[0:top_k]
-    return [('/'.join(_CLASSES[index]), prob) for index, prob in pairs]
+    return [("/".join(_CLASSES[index]), prob) for index, prob in pairs]

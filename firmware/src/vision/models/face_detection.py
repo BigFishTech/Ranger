@@ -15,35 +15,36 @@
 
 from collections import namedtuple
 
-from aiy.vision.inference import ModelDescriptor
-from aiy.vision.models import utils
+from src.vision.inference import ModelDescriptor
+from src.vision.models import utils
 
 
-_COMPUTE_GRAPH_NAME = 'face_detection.binaryproto'
+_COMPUTE_GRAPH_NAME = "face_detection.binaryproto"
 
 # face_score: float, face confidence score from 0.0 to 1.0.
 # joy_score: float, face joy score from 0.0 to 1.0.
 # bounding_box: (x, y, width, height) tuple.
-Face = namedtuple('Face', ('face_score', 'joy_score', 'bounding_box'))
+Face = namedtuple("Face", ("face_score", "joy_score", "bounding_box"))
 
 
 def model():
     # Face detection model has special implementation in VisionBonnet firmware.
     # input_shape, input_normalizer, and compute_graph params have no effect.
     return ModelDescriptor(
-        name='FaceDetection',
+        name="FaceDetection",
         input_shape=(1, 0, 0, 3),
         input_normalizer=(0, 0),
-        compute_graph=utils.load_compute_graph(_COMPUTE_GRAPH_NAME))
+        compute_graph=utils.load_compute_graph(_COMPUTE_GRAPH_NAME),
+    )
 
 
 def get_faces(result):
     """Returns list of Face objects decoded from the inference result."""
     assert len(result.tensors) == 3
     # TODO(dkovalev): check tensor shapes
-    bboxes = utils.reshape(result.tensors['bounding_boxes'].data, 4)
-    face_scores = tuple(result.tensors['face_scores'].data)
-    joy_scores = tuple(result.tensors['joy_scores'].data)
+    bboxes = utils.reshape(result.tensors["bounding_boxes"].data, 4)
+    face_scores = tuple(result.tensors["face_scores"].data)
+    joy_scores = tuple(result.tensors["joy_scores"].data)
     assert len(bboxes) == len(joy_scores)
     assert len(bboxes) == len(face_scores)
     return [
