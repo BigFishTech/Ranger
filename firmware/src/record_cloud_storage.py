@@ -104,14 +104,15 @@ def main():
         # Example usage
         file_url = upload_audio_to_firebase(args.filename)
         print("Uploaded file URL:", file_url)
-        downloaded_file = download_audio_from_url(file_url, args.filename)
+        downloaded_file = download_audio_from_url(file_url, "downloaded_audio.wav")
         print("Downloaded file:", downloaded_file)
 
-        print("Press button to play recorded sound.")
-        board.button.wait_for_press()
+        # print("Press button to play recorded sound.")
+        # board.button.wait_for_press()
 
         print("Playing...")
-        play_wav(args.filename)
+        # play_wav(args.filename)
+        play_wav(downloaded_file)
         print("Done.")
 
 
