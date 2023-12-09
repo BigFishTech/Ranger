@@ -17,20 +17,11 @@ import argparse
 import time
 import threading
 
-import sys
 import requests
 import os
 
-# from ...src.board import Board
-# from ...src.voice.audio import AudioFormat, play_wav, record_file, Recorder
-
-# Add the src directory to the Python path
-src_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "src"))
-sys.path.append(src_dir)
-
-# Now you can import your classes or functions from the src directory
-from board import Board
-from voice.audio import AudioFormat, play_wav, record_file, Recorder
+from ...src.board import Board
+from ...src.voice.audio import AudioFormat, play_wav, record_file, Recorder
 
 
 def upload_audio_to_firebase(file_name):
