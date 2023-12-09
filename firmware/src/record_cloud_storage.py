@@ -20,8 +20,8 @@ import threading
 import requests
 import os
 
-from ...src.board import Board
-from ...src.voice.audio import AudioFormat, play_wav, record_file, Recorder
+from src.board import Board
+from src.voice.audio import AudioFormat, play_wav, record_file, Recorder
 
 
 def upload_audio_to_firebase(file_name):
