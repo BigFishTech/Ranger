@@ -128,18 +128,18 @@ def main():
         response_audio_url = call_cloud_function(storage_file_location)
         print("Response audio url:", response_audio_url)
 
-        # downloaded_file = download_audio_from_url(
-        #     response_audio_url, "downloaded_audio.wav"
-        # )
-        # print("Downloaded file:", downloaded_file)
+        downloaded_file = download_audio_from_url(
+            response_audio_url, "downloaded_audio.wav"
+        )
+        print("Downloaded file:", downloaded_file)
 
-        # # print("Press button to play recorded sound.")
-        # # board.button.wait_for_press()
+        # print("Press button to play recorded sound.")
+        # board.button.wait_for_press()
 
-        # print("Playing...")
-        # # play_wav(args.filename)
-        # play_wav(downloaded_file)
-        # print("Done.")
+        print("Playing...")
+        # play_wav(args.filename)
+        play_wav(downloaded_file)
+        print("Done.")
 
 
 if __name__ == "__main__":
