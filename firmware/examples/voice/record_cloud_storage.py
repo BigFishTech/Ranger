@@ -17,8 +17,8 @@ import argparse
 import time
 import threading
 
-from aiy.board import Board
-from aiy.voice.audio import AudioFormat, play_wav, record_file, Recorder
+from ...src.board import Board
+from ...src.voice.audio import AudioFormat, play_wav, record_file, Recorder
 
 import requests
 import os
