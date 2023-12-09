@@ -1,15 +1,21 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "CommonJS",
     "noImplicitReturns": true,
-    "noUnusedLocals": true,
     "outDir": "lib",
     "sourceMap": true,
     "strict": true,
-    "target": "es2017"
+    "target": "ES2021",
+    "esModuleInterop": true,
+    "allowJs": true,
+    "typeRoots": ["./types", "./node_modules/@types"],
+    "skipLibCheck": true,
+    "noUnusedParameters": false,
+    "noUnusedLocals": false
   },
   "compileOnSave": true,
   "include": [
-    "src"
+    "src",
+    "types/**/*"
   ]
 }

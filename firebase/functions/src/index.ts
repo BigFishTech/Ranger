@@ -1,19 +1,23 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * import {onCall} from "firebase-functions/v2/https";
- * import {onDocumentWritten} from "firebase-functions/v2/firestore";
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
+import { initializeApp, applicationDefault } from "firebase-admin/app";
+import { firestore } from "firebase-admin";
+// import functions = require("firebase-functions");
 
-import {onRequest} from "firebase-functions/v2/https";
-import * as logger from "firebase-functions/logger";
+initializeApp({
+    credential: applicationDefault(),
+    projectId: "ranger-8961d",
+    storageBucket: "ranger-8961d.appspot.com",
+});
 
-// Start writing functions
-// https://firebase.google.com/docs/functions/typescript
+firestore().settings({ ignoreUndefinedProperties: true });
 
-// export const helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+import * as dotenv from "dotenv";
+dotenv.config();
+
+import { onRequest } from "firebase-functions/v2/https";
+import { testFunctionHandler } from "./functions/test_functions";
+
+/////////////////////////////////////////////////////////
+// Test Functions
+/////////////////////////////////////////////////////////
+
+exports.testFunction = onRequest(testFunctionHandler);

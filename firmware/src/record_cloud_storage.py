@@ -80,6 +80,25 @@ def download_audio_from_url(url, file_name):
         return None
 
 
+def call_cloud_function(url_param):
+    # Replace with your Cloud Function's URL
+    cloud_function_url = "https://testfunction-23pdjdacza-uc.a.run.app"
+
+    # Prepare the JSON body
+    json_data = {"audioUrl": url_param}
+
+    # Make the POST request
+    response = requests.post(cloud_function_url, json=json_data)
+
+    # Check if the request was successful
+    if response.status_code == 200:
+        # Return the response text
+        return response.text
+    else:
+        print("Failed to call Cloud Function:", response.status_code)
+        return None
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--filename", "-f", default="recording.wav")
@@ -106,6 +125,10 @@ def main():
         print("Uploaded file URL:", file_url)
         downloaded_file = download_audio_from_url(file_url, "downloaded_audio.wav")
         print("Downloaded file:", downloaded_file)
+
+        # Example usage
+        returned_string = call_cloud_function(downloaded_file)
+        print("Returned string from Cloud Function:", returned_string)
 
         # print("Press button to play recorded sound.")
         # board.button.wait_for_press()
