@@ -57,6 +57,29 @@ def upload_audio_to_firebase(file_name):
         return "Upload failed"
 
 
+def download_audio_from_url(url, file_name):
+    # Send a GET request to the URL
+    response = requests.get(url)
+
+    # Check if the request was successful
+    if response.status_code == 200:
+        # Get the current working directory
+        current_dir = os.getcwd()
+
+        # Construct the full file path
+        file_path = os.path.join(current_dir, file_name)
+
+        # Write the content to a file
+        with open(file_path, "wb") as audio_file:
+            audio_file.write(response.content)
+
+        print(f"File downloaded successfully: {file_path}")
+        return file_path
+    else:
+        print("Failed to download file")
+        return None
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--filename", "-f", default="recording.wav")
@@ -81,6 +104,8 @@ def main():
         # Example usage
         file_url = upload_audio_to_firebase(args.filename)
         print("Uploaded file URL:", file_url)
+        downloaded_file = download_audio_from_url(file_url, args.filename)
+        print("Downloaded file:", downloaded_file)
 
         print("Press button to play recorded sound.")
         board.button.wait_for_press()
