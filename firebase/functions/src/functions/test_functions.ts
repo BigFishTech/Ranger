@@ -2,7 +2,6 @@ import { storage } from "firebase-admin";
 import functions = require("firebase-functions");
 import FormData from "form-data";
 import axios from "axios";
-import ffmpeg from "fluent-ffmpeg";
 import { PassThrough } from "stream";
 
 // import { Storage } from "@google-cloud/storage";
@@ -123,17 +122,14 @@ const getVoiceCompletion = async (message: string): Promise<string> => {
             responseType: "arraybuffer",
         });
 
-        // Convert the MP3 response to WAV
-        const wavBuffer = await convertMp3ToWav(ttsResponse.data);
-
         // Initialize Firebase Storage
         const bucket = storage().bucket();
-        const fileName = "speech_response.wav";
+        const fileName = "speech_response.mp3";
         const file = bucket.file(fileName);
 
         // Upload the audio file to Firebase Storage
-        await file.save(wavBuffer, {
-            metadata: { contentType: "audio/wav" },
+        await file.save(ttsResponse.data, {
+            metadata: { contentType: "audio/mpeg" },
         });
 
         // Make the file publicly accessible (if required)
@@ -146,35 +142,4 @@ const getVoiceCompletion = async (message: string): Promise<string> => {
         console.error("Error in text to speech and upload:", error);
         return "There was an error processing your request.";
     }
-};
-
-
-const convertMp3ToWav = async (mp3Buffer: Buffer): Promise<Buffer> => {
-    return new Promise((resolve, reject) => {
-        // Create a stream to pass the MP3 buffer
-        const mp3Stream = new PassThrough();
-        mp3Stream.end(mp3Buffer);
-
-        // Create a stream to collect the WAV output
-        const wavStream = new PassThrough();
-        let wavBuffer = Buffer.alloc(0);
-
-        wavStream.on("data", (chunk) => {
-            wavBuffer = Buffer.concat([wavBuffer, chunk]);
-        });
-
-        wavStream.on("end", () => {
-            resolve(wavBuffer);
-        });
-
-        // Perform the conversion
-        ffmpeg(mp3Stream)
-            .inputFormat("mp3")
-            .toFormat("wav")
-            .on("error", (err) => {
-                console.log("Error during conversion:", err);
-                reject(err);
-            })
-            .pipe(wavStream);
-    });
 };

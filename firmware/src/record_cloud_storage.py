@@ -18,6 +18,7 @@ import time
 import threading
 
 import requests
+import subprocess
 import os
 
 from src.board import Board
@@ -66,15 +67,27 @@ def download_audio_from_url(url, file_name):
         # Get the current working directory
         current_dir = os.getcwd()
 
-        # Construct the full file path
-        file_path = os.path.join(current_dir, file_name)
+        # Construct the full file path for the mp3 file
+        file_path_mp3 = os.path.join(current_dir, file_name)
 
         # Write the content to a file
-        with open(file_path, "wb") as audio_file:
+        with open(file_path_mp3, "wb") as audio_file:
             audio_file.write(response.content)
 
-        print(f"File downloaded successfully: {file_path}")
-        return file_path
+        print(f"MP3 file downloaded successfully: {file_path_mp3}")
+
+        # Construct the file path for the wav file
+        file_path_wav = os.path.splitext(file_path_mp3)[0] + ".wav"
+
+        # Convert mp3 to wav using FFmpeg
+        try:
+            subprocess.run(["ffmpeg", "-i", file_path_mp3, file_path_wav], check=True)
+            print(f"WAV file created successfully: {file_path_wav}")
+        except subprocess.CalledProcessError:
+            print("Failed to convert file to WAV format")
+            return None
+
+        return file_path_wav
     else:
         print("Failed to download file")
         return None
