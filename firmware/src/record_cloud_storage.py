@@ -123,12 +123,15 @@ def main():
         # Example usage
         file_url = upload_audio_to_firebase(args.filename)
         print("Uploaded file URL:", file_url)
-        downloaded_file = download_audio_from_url(file_url, "downloaded_audio.wav")
-        print("Downloaded file:", downloaded_file)
 
         # Example usage
-        returned_string = call_cloud_function(downloaded_file)
-        print("Returned string from Cloud Function:", returned_string)
+        response_audio_url = call_cloud_function(file_url)
+        print("Response audio url:", response_audio_url)
+
+        downloaded_file = download_audio_from_url(
+            response_audio_url, "downloaded_audio.wav"
+        )
+        print("Downloaded file:", downloaded_file)
 
         # print("Press button to play recorded sound.")
         # board.button.wait_for_press()
