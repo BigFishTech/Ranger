@@ -81,7 +81,9 @@ def download_audio_from_url(url, file_name):
 
         # Convert mp3 to wav using FFmpeg
         try:
-            subprocess.run(["ffmpeg", "-i", file_path_mp3, file_path_wav], check=True)
+            subprocess.run(
+                ["ffmpeg", "-y", "-i", file_path_mp3, file_path_wav], check=True
+            )
             print(f"WAV file created successfully: {file_path_wav}")
         except subprocess.CalledProcessError:
             print("Failed to convert file to WAV format")
