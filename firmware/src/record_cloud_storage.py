@@ -51,8 +51,8 @@ def upload_audio_to_firebase(file_name):
     # Check if the upload was successful
     if response.status_code == 200:
         # Get the download URL
-        download_url = response.json().get("downloadTokens")
-        return f"https://firebasestorage.googleapis.com/v0/b/{storage_url}/o/{file_name}?alt=media&token={download_url}"
+        # download_url = response.json().get("downloadTokens")
+        return file_name
     else:
         return "Upload failed"
 
@@ -80,12 +80,12 @@ def download_audio_from_url(url, file_name):
         return None
 
 
-def call_cloud_function(url_param):
+def call_cloud_function(audio_storage_location):
     # Replace with your Cloud Function's URL
     cloud_function_url = "https://testfunction-23pdjdacza-uc.a.run.app"
 
     # Prepare the JSON body
-    json_data = {"audioUrl": url_param}
+    json_data = {"audioStorageLocation": audio_storage_location}
 
     # Make the POST request
     response = requests.post(cloud_function_url, json=json_data)
@@ -121,25 +121,25 @@ def main():
         record_file(AudioFormat.CD, filename=args.filename, wait=wait, filetype="wav")
 
         # Example usage
-        file_url = upload_audio_to_firebase(args.filename)
-        print("Uploaded file URL:", file_url)
+        storage_file_location = upload_audio_to_firebase(args.filename)
+        print("Uploaded file URL:", storage_file_location)
 
         # Example usage
-        response_audio_url = call_cloud_function(file_url)
+        response_audio_url = call_cloud_function(storage_file_location)
         print("Response audio url:", response_audio_url)
 
-        downloaded_file = download_audio_from_url(
-            response_audio_url, "downloaded_audio.wav"
-        )
-        print("Downloaded file:", downloaded_file)
+        # downloaded_file = download_audio_from_url(
+        #     response_audio_url, "downloaded_audio.wav"
+        # )
+        # print("Downloaded file:", downloaded_file)
 
-        # print("Press button to play recorded sound.")
-        # board.button.wait_for_press()
+        # # print("Press button to play recorded sound.")
+        # # board.button.wait_for_press()
 
-        print("Playing...")
-        # play_wav(args.filename)
-        play_wav(downloaded_file)
-        print("Done.")
+        # print("Playing...")
+        # # play_wav(args.filename)
+        # play_wav(downloaded_file)
+        # print("Done.")
 
 
 if __name__ == "__main__":
