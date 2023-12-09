@@ -72,14 +72,16 @@ import wave
 
 from collections import namedtuple
 
-SUPPORTED_FILETYPES = ('wav', 'raw', 'voc', 'au')
+SUPPORTED_FILETYPES = ("wav", "raw", "voc", "au")
 
 
-class AudioFormat(namedtuple('AudioFormat',
-                             ['sample_rate_hz', 'num_channels', 'bytes_per_sample'])):
+class AudioFormat(
+    namedtuple("AudioFormat", ["sample_rate_hz", "num_channels", "bytes_per_sample"])
+):
     @property
     def bytes_per_second(self):
         return self.sample_rate_hz * self.num_channels * self.bytes_per_sample
+
 
 AudioFormat.CD = AudioFormat(sample_rate_hz=44100, num_channels=2, bytes_per_sample=2)
 
@@ -104,12 +106,14 @@ def wave_get_format(wav_file):
     Args:
         wav_file: A :class:`wave.Wave_read` object.
     """
-    return AudioFormat(sample_rate_hz=wav_file.getframerate(),
-                       num_channels=wav_file.getnchannels(),
-                       bytes_per_sample=wav_file.getsampwidth())
+    return AudioFormat(
+        sample_rate_hz=wav_file.getframerate(),
+        num_channels=wav_file.getnchannels(),
+        bytes_per_sample=wav_file.getsampwidth(),
+    )
 
 
-def arecord(fmt, filetype='raw', filename=None, device='default'):
+def arecord(fmt, filetype="raw", filename=None, device="default"):
     """Returns an ``arecord`` command-line command.
 
     Args:
@@ -119,17 +123,25 @@ def arecord(fmt, filetype='raw', filename=None, device='default'):
         device: The PCM device name. Leave as ``default`` to use the default ALSA soundcard.
     """
     if fmt is None:
-        raise ValueError('Format must be specified for recording.')
+        raise ValueError("Format must be specified for recording.")
 
     if filetype not in SUPPORTED_FILETYPES:
-        raise ValueError('File type must be %s.' % ', '.join(SUPPORTED_FILETYPES))
+        raise ValueError("File type must be %s." % ", ".join(SUPPORTED_FILETYPES))
 
-    cmd = ['arecord', '-q',
-           '-D', device,
-           '-t', filetype,
-           '-c', str(fmt.num_channels),
-           '-f', 's%d' % (8 * fmt.bytes_per_sample),
-           '-r', str(fmt.sample_rate_hz)]
+    cmd = [
+        "arecord",
+        "-q",
+        "-D",
+        device,
+        "-t",
+        filetype,
+        "-c",
+        str(fmt.num_channels),
+        "-f",
+        "s%d" % (8 * fmt.bytes_per_sample),
+        "-r",
+        str(fmt.sample_rate_hz),
+    ]
 
     if filename is not None:
         cmd.append(filename)
@@ -137,7 +149,7 @@ def arecord(fmt, filetype='raw', filename=None, device='default'):
     return cmd
 
 
-def aplay(fmt, filetype='raw', filename=None, device='default'):
+def aplay(fmt, filetype="raw", filename=None, device="default"):
     """Returns an ``aplay`` command-line command.
 
     Args:
@@ -146,24 +158,30 @@ def aplay(fmt, filetype='raw', filename=None, device='default'):
         filename: The audio file to play.
         device: The PCM device name. Leave as ``default`` to use the default ALSA soundcard.
     """
-    if filetype == 'raw' and fmt is None:
-        raise ValueError('Format must be specified for raw data.')
+    if filetype == "raw" and fmt is None:
+        raise ValueError("Format must be specified for raw data.")
 
-    cmd = ['aplay', '-q',
-           '-D', device,
-           '-t', filetype]
+    cmd = ["aplay", "-q", "-D", device, "-t", filetype]
 
     if fmt is not None:
-        cmd.extend(['-c', str(fmt.num_channels),
-                    '-f', 's%d' % (8 * fmt.bytes_per_sample),
-                    '-r', str(fmt.sample_rate_hz)])
+        cmd.extend(
+            [
+                "-c",
+                str(fmt.num_channels),
+                "-f",
+                "s%d" % (8 * fmt.bytes_per_sample),
+                "-r",
+                str(fmt.sample_rate_hz),
+            ]
+        )
 
     if filename is not None:
         cmd.append(filename)
 
     return cmd
 
-def record_file_async(fmt, filename, filetype, device='default'):
+
+def record_file_async(fmt, filename, filetype, device="default"):
     """
     Records an audio file, asynchronously. To stop the recording, terminate the returned
     :class:`~subprocess.Popen` object.
@@ -178,16 +196,16 @@ def record_file_async(fmt, filename, filetype, device='default'):
         The :class:`~subprocess.Popen` object for the subprocess in which audio is recording.
     """
     if filename is None:
-        raise ValueError('Filename must be specified.')
+        raise ValueError("Filename must be specified.")
 
     if filetype is None:
-        raise ValueError('Filetype must be specified.')
+        raise ValueError("Filetype must be specified.")
 
     cmd = arecord(fmt, filetype=filetype, filename=filename, device=device)
     return subprocess.Popen(cmd)
 
 
-def record_file(fmt, filename, filetype, wait, device='default'):
+def record_file(fmt, filename, filetype, wait, device="default"):
     """
     Records an audio file (blocking). The length of the recording is determined by a
     blocking ``wait`` function that you provide. When your ``wait`` function finishes,
@@ -204,7 +222,7 @@ def record_file(fmt, filename, filetype, wait, device='default'):
         device: The PCM device name. Leave as ``default`` to use the default ALSA soundcard.
     """
     if wait is None:
-        raise ValueError('Wait callback must be specified.')
+        raise ValueError("Wait callback must be specified.")
 
     process = record_file_async(fmt, filename, filetype, device)
     try:
@@ -225,16 +243,16 @@ def play_wav_async(filename_or_data):
         The :class:`~subprocess.Popen` object for the subprocess in which audio is playing.
     """
     if isinstance(filename_or_data, (bytes, bytearray)):
-        cmd = aplay(fmt=None, filetype='wav', filename=None)
+        cmd = aplay(fmt=None, filetype="wav", filename=None)
         process = subprocess.Popen(cmd, stdin=subprocess.PIPE)
         process.stdin.write(filename_or_data)
         return process
 
     if isinstance(filename_or_data, str):
-        cmd = aplay(fmt=None, filetype='wav', filename=filename_or_data)
+        cmd = aplay(fmt=None, filetype="wav", filename=filename_or_data)
         return subprocess.Popen(cmd)
 
-    raise ValueError('Must be filename or byte-like object')
+    raise ValueError("Must be filename or byte-like object")
 
 
 def play_wav(filename_or_data):
@@ -259,16 +277,16 @@ def play_raw_async(fmt, filename_or_data):
         The :class:`~subprocess.Popen` object for the subprocess in which audio is playing.
     """
     if isinstance(filename_or_data, (bytes, bytearray)):
-        cmd = aplay(fmt=fmt, filetype='raw')
+        cmd = aplay(fmt=fmt, filetype="raw")
         process = subprocess.Popen(cmd, stdin=subprocess.PIPE)
         process.stdin.write(filename_or_data)
         return process
 
     if isinstance(filename_or_data, str):
-        cmd = aplay(fmt=fmt, filetype='raw', filename=filename_or_data)
+        cmd = aplay(fmt=fmt, filetype="raw", filename=filename_or_data)
         return subprocess.Popen(cmd)
 
-    raise ValueError('Must be filename or byte-like object')
+    raise ValueError("Must be filename or byte-like object")
 
 
 def play_raw(fmt, filename_or_data):
@@ -283,8 +301,9 @@ def play_raw(fmt, filename_or_data):
 
 
 class Recorder:
-
-    def __init__(self, ):
+    def __init__(
+        self,
+    ):
         self._process = None
         self._done = threading.Event()
         self._started = threading.Event()
@@ -295,9 +314,16 @@ class Recorder:
     def __exit__(self, exc_type, exc_value, exc_tb):
         self.join()
 
-    def record(self, fmt, chunk_duration_sec, device='default',
-               num_chunks=None,
-               on_start=None, on_stop=None, filename=None):
+    def record(
+        self,
+        fmt,
+        chunk_duration_sec,
+        device="default",
+        num_chunks=None,
+        on_start=None,
+        on_stop=None,
+        filename=None,
+    ):
         """
         Records audio with the ALSA soundcard driver, via ``arecord``.
 
@@ -319,7 +345,7 @@ class Recorder:
 
         wav_file = None
         if filename:
-            wav_file = wave.open(filename, 'wb')
+            wav_file = wave.open(filename, "wb")
             wave_set_format(wav_file, fmt)
 
         self._process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
@@ -327,7 +353,7 @@ class Recorder:
         if on_start:
             on_start()
         try:
-            for _ in (range(num_chunks) if num_chunks else itertools.count()):
+            for _ in range(num_chunks) if num_chunks else itertools.count():
                 if self._done.is_set():
                     break
                 data = self._process.stdout.read(chunk_size)
@@ -352,7 +378,6 @@ class Recorder:
     def join(self):
         self._started.wait()
         self._process.wait()
-
 
 
 class Player:
@@ -380,7 +405,8 @@ class FilePlayer(Player):
     """
     Plays audio from a file.
     """
-    def play_raw(self, fmt, filename, device='default'):
+
+    def play_raw(self, fmt, filename, device="default"):
         """
         Plays a raw audio file.
 
@@ -389,10 +415,9 @@ class FilePlayer(Player):
             filename: The audio file to play.
             device: The PCM device name. Leave as ``default`` to use the default ALSA soundcard.
         """
-        self._popen(aplay(fmt=fmt, filetype='raw', filename=filename, device=device))
+        self._popen(aplay(fmt=fmt, filetype="raw", filename=filename, device=device))
 
-
-    def play_wav(self, filename, device='default'):
+    def play_wav(self, filename, device="default"):
         """
         Plays a WAV file.
 
@@ -400,26 +425,31 @@ class FilePlayer(Player):
             filename: The WAV file to play.
             device: The PCM device name. Leave as ``default`` to use the default ALSA soundcard.
         """
-        self._popen(aplay(fmt=None, filetype='wav', filename=filename, device=device))
+        self._popen(aplay(fmt=None, filetype="wav", filename=filename, device=device))
+
 
 class BytesPlayer(Player):
     """
     Plays audio from a given byte data source.
     """
-    def play(self, fmt, device='default'):
+
+    def play(self, fmt, device="default"):
         """
         Args:
             fmt: The audio format; an instance of :class:`AudioFormat`.
             device: The PCM device name. Leave as ``default`` to use the default ALSA soundcard.
 
         Returns:
-            A closure with an inner function ``push()`` that accepts the byte data. 
+            A closure with an inner function ``push()`` that accepts the byte data.
         """
-        process = self._popen(aplay(fmt=fmt, filetype='raw', device=device), stdin=subprocess.PIPE)
+        process = self._popen(
+            aplay(fmt=fmt, filetype="raw", device=device), stdin=subprocess.PIPE
+        )
 
         def push(data):
             if data:
                 process.stdin.write(data)
             else:
                 process.stdin.close()
+
         return push

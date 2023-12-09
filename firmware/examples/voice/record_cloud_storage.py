@@ -20,6 +20,42 @@ import threading
 from aiy.board import Board
 from aiy.voice.audio import AudioFormat, play_wav, record_file, Recorder
 
+import requests
+import os
+
+
+def upload_audio_to_firebase(file_name):
+    storage_url = "ranger-8961d.appspot.com"
+
+    # Get the current working directory
+    current_dir = os.getcwd()
+
+    # Construct the full file path
+    file_path = os.path.join(current_dir, file_name)
+
+    # Define the headers for the HTTP request
+    headers = {"Content-Type": "audio/wav"}  # Assuming a WAV file format
+
+    # Define the Firebase upload URL
+    upload_url = (
+        f"https://firebasestorage.googleapis.com/v0/b/{storage_url}/o?name={file_name}"
+    )
+
+    # Read the audio file data
+    with open(file_path, "rb") as audio_file:
+        file_data = audio_file.read()
+
+    # Make the POST request to upload the file
+    response = requests.post(upload_url, headers=headers, data=file_data)
+
+    # Check if the upload was successful
+    if response.status_code == 200:
+        # Get the download URL
+        download_url = response.json().get("downloadTokens")
+        return f"https://firebasestorage.googleapis.com/v0/b/{storage_url}/o/{file_name}?alt=media&token={download_url}"
+    else:
+        return "Upload failed"
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -41,6 +77,11 @@ def main():
                 time.sleep(0.5)
 
         record_file(AudioFormat.CD, filename=args.filename, wait=wait, filetype="wav")
+
+        # Example usage
+        file_url = upload_audio_to_firebase(args.filename)
+        print("Uploaded file URL:", file_url)
+
         print("Press button to play recorded sound.")
         board.button.wait_for_press()
 
