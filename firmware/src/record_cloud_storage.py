@@ -142,7 +142,7 @@ def main():
         print("Response audio url:", response_audio_url)
 
         downloaded_file = download_audio_from_url(
-            response_audio_url, "downloaded_audio.wav"
+            response_audio_url, "downloaded_audio.mp3"
         )
         print("Downloaded file:", downloaded_file)
 
