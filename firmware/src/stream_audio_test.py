@@ -21,13 +21,7 @@ import requests
 import subprocess
 import os
 
-# from pydub import AudioSegment
-# from pydub.playback import play
-# import soundfile as sf
-# import sounddevice as sd
-# from pydub import AudioSegment
-# import simpleaudio as sa
-import pyogg
+from pydub import AudioSegment
 import simpleaudio as sa
 import io
 
@@ -52,18 +46,15 @@ def stream_and_play_audio():
         audio_buffer.write(chunk)
     audio_buffer.seek(0)  # Rewind the buffer to the beginning
 
-    # Decode the Opus file using PyOgg
-    opus_file = pyogg.OpusFile(audio_buffer)
-
-    # Convert to a format compatible with simpleaudio
-    audio_data = opus_file.buffer
+    # Load the audio file using pydub
+    audio = AudioSegment.from_file(audio_buffer, format="opus")
 
     # Play the audio
     play_obj = sa.play_buffer(
-        audio_data,
-        num_channels=opus_file.channels,
-        bytes_per_sample=opus_file.bytes_per_sample,
-        sample_rate=opus_file.frequency,
+        audio.raw_data,
+        num_channels=audio.channels,
+        bytes_per_sample=audio.sample_width,
+        sample_rate=audio.frame_rate,
     )
 
     # Wait for playback to finish before exiting
