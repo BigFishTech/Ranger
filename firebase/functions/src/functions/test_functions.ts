@@ -8,32 +8,41 @@ import { PassThrough } from "stream";
 // import fetch from "node-fetch";
 
 export const testFunctionHandler = async (req: functions.https.Request, resp: functions.Response<string>) => {
-    // const audioUrl = req.body.audioUrl;
+    // const audioStorageLocation = req.body.audioStorageLocation as string;
+    // if (!audioStorageLocation) {
+    //     resp.status(400).send("No audio provided");
+    //     return;
+    // }
+    // // Get the transcription
+    // const transcription = await getTranscription(audioStorageLocation);
+    // // Get the GPT chat completion
+    // const gptChatCompletion = await getGptChatCompletion(transcription);
+    // // Get the voice completion
+    // const voiceCompletionUrl = await getVoiceCompletion(gptChatCompletion);
+    // // Send the response
+    // resp.send(voiceCompletionUrl);
 
-    // functions.logger.info(audioUrl);
 
-    // resp.send("https://firebasestorage.googleapis.com/v0/b/ranger-8961d.appspot.com/o/bumbum.wav?alt=media&token=ff1dc100-ece2-4fb7-a807-16f4faec57ec");
+    const openAiUrl = "https://api.openai.com/v1/audio/speech";
 
+    // Prepare the request body for OpenAI TTS
+    const requestBody = {
+        model: "tts-1",
+        input: "Hello this is a test, I am streaming this large body of text, I hope it works. Please let me know how we are doing here. Hello this is a test, I am streaming this large body of text, I hope it works. Please let me know how we are doing here. Hello this is a test, I am streaming this large body of text, I hope it works. Please let me know how we are doing here. ",
+        voice: "onyx",
+    };
 
-    // Extract the audio file URL from the request
-    const audioStorageLocation = req.body.audioStorageLocation as string;
+    // Request to OpenAI TTS
+    const ttsResponse = await axios.post(openAiUrl, requestBody, {
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+        },
+        responseType: "stream",
+    });
 
-    if (!audioStorageLocation) {
-        resp.status(400).send("No audio provided");
-        return;
-    }
-
-    // Get the transcription
-    const transcription = await getTranscription(audioStorageLocation);
-
-    // Get the GPT chat completion
-    const gptChatCompletion = await getGptChatCompletion(transcription);
-
-    // Get the voice completion
-    const voiceCompletionUrl = await getVoiceCompletion(gptChatCompletion);
-
-    // Send the response
-    resp.send(voiceCompletionUrl);
+    resp.setHeader("Content-Type", "audio/mpeg");
+    ttsResponse.data.pipe(resp);
 };
 
 const getTranscription = async (storageAudioFileLocation: string): Promise<string> => {
@@ -76,7 +85,7 @@ const getGptChatCompletion = async (userMessage: string): Promise<string> => {
         messages: [
             {
                 role: "system",
-                content: "You are Ranger Rick.",
+                content: "You are the biggest bro of them all. Your bro level is over 9000.",
             },
             {
                 role: "user",
