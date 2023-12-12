@@ -53,22 +53,18 @@ def stream_and_play_audio():
         audio_buffer.write(chunk)
     audio_buffer.seek(0)  # Rewind the buffer to the beginning
 
-    # Open the audio file using PyAV
-    container = av.open(audio_buffer)
-    stream = next(s for s in container.streams if s.type == "audio")
-    frames = container.decode(stream)
+    # Decode the Opus file using PyOgg
+    opus_file = pyogg.OpusFile(audio_buffer)
 
-    # Convert frames to raw audio
-    raw_audio = b"".join(
-        np.frombuffer(frame.planes[0].to_bytes(), np.int16) for frame in frames
-    )
+    # Convert to a format compatible with simpleaudio
+    audio_data = opus_file.buffer
 
     # Play the audio
     play_obj = sa.play_buffer(
-        raw_audio,
-        num_channels=stream.channels,
-        bytes_per_sample=2,
-        sample_rate=stream.rate,
+        audio_data,
+        num_channels=opus_file.channels,
+        bytes_per_sample=opus_file.bytes_per_sample,
+        sample_rate=opus_file.frequency,
     )
 
     # Wait for playback to finish before exiting
