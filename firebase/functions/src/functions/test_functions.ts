@@ -30,6 +30,7 @@ export const testFunctionHandler = async (req: functions.https.Request, resp: fu
         model: "tts-1",
         input: "Hello this is a test, I am streaming this large body of text, I hope it works. Please let me know how we are doing here. Hello this is a test, I am streaming this large body of text, I hope it works. Please let me know how we are doing here. Hello this is a test, I am streaming this large body of text, I hope it works. Please let me know how we are doing here. ",
         voice: "onyx",
+        format: "opus",
     };
 
     // Request to OpenAI TTS
@@ -41,7 +42,9 @@ export const testFunctionHandler = async (req: functions.https.Request, resp: fu
         responseType: "stream",
     });
 
-    resp.setHeader("Content-Type", "audio/mpeg");
+    // resp.setHeader("Content-Type", "audio/mpeg");
+    resp.setHeader("Content-Type", "audio/ogg");
+
     ttsResponse.data.pipe(resp);
 };
 

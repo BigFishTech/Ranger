@@ -47,7 +47,7 @@ def stream_and_play_audio():
 
     # Load audio using pydub
     audio = AudioSegment.from_file(
-        audio_buffer, format="mp3"
+        audio_buffer, format="opus"
     )  # or format="opus" based on your stream format
 
     # Play audio
