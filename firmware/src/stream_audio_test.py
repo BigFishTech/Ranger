@@ -20,8 +20,11 @@ import threading
 import requests
 import subprocess
 import os
-from pydub import AudioSegment
-from pydub.playback import play
+
+# from pydub import AudioSegment
+# from pydub.playback import play
+import soundfile as sf
+import sounddevice as sd
 import io
 
 from src.board import Board
@@ -45,13 +48,17 @@ def stream_and_play_audio():
         audio_buffer.write(chunk)
     audio_buffer.seek(0)  # Rewind the buffer to the beginning
 
-    # Load audio using pydub
-    audio = AudioSegment.from_file(
-        audio_buffer, format="opus"
-    )  # or format="opus" based on your stream format
+    with sf.SoundFile(audio_buffer, format="OGG") as sound_file:
+        sd.play(sound_file.read(dtype="float32"), sound_file.samplerate)
+        sd.wait()
 
-    # Play audio
-    play(audio)
+    # Load audio using pydub
+    # audio = AudioSegment.from_file(
+    #     audio_buffer, format="opus"
+    # )  # or format="opus" based on your stream format
+
+    # # Play audio
+    # play(audio)
 
 
 def main():
