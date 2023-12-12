@@ -23,8 +23,10 @@ import os
 
 # from pydub import AudioSegment
 # from pydub.playback import play
-import soundfile as sf
-import sounddevice as sd
+# import soundfile as sf
+# import sounddevice as sd
+from pydub import AudioSegment
+import simpleaudio as sa
 import io
 
 from src.board import Board
@@ -48,9 +50,23 @@ def stream_and_play_audio():
         audio_buffer.write(chunk)
     audio_buffer.seek(0)  # Rewind the buffer to the beginning
 
-    with sf.SoundFile(audio_buffer, format="OGG") as sound_file:
-        sd.play(sound_file.read(dtype="float32"), sound_file.samplerate)
-        sd.wait()
+    # with sf.SoundFile(audio_buffer, format="OGG") as sound_file:
+    #     sd.play(sound_file.read(dtype="float32"), sound_file.samplerate)
+    #     sd.wait()
+
+    # Load the audio file using pydub
+    audio = AudioSegment.from_file(audio_buffer, format="opus")
+
+    # Play the audio
+    play_obj = sa.play_buffer(
+        audio.raw_data,
+        num_channels=audio.channels,
+        bytes_per_sample=audio.sample_width,
+        sample_rate=audio.frame_rate,
+    )
+
+    # Wait for playback to finish before exiting
+    play_obj.wait_done()
 
     # Load audio using pydub
     # audio = AudioSegment.from_file(
