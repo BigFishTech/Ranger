@@ -25,7 +25,10 @@ import os
 # from pydub.playback import play
 # import soundfile as sf
 # import sounddevice as sd
-from pydub import AudioSegment
+# from pydub import AudioSegment
+# import simpleaudio as sa
+import av
+import numpy as np
 import simpleaudio as sa
 import io
 
@@ -50,23 +53,44 @@ def stream_and_play_audio():
         audio_buffer.write(chunk)
     audio_buffer.seek(0)  # Rewind the buffer to the beginning
 
+    # Open the audio file using PyAV
+    container = av.open(audio_buffer)
+    stream = next(s for s in container.streams if s.type == "audio")
+    frames = container.decode(stream)
+
+    # Convert frames to raw audio
+    raw_audio = b"".join(
+        np.frombuffer(frame.planes[0].to_bytes(), np.int16) for frame in frames
+    )
+
+    # Play the audio
+    play_obj = sa.play_buffer(
+        raw_audio,
+        num_channels=stream.channels,
+        bytes_per_sample=2,
+        sample_rate=stream.rate,
+    )
+
+    # Wait for playback to finish before exiting
+    play_obj.wait_done()
+
     # with sf.SoundFile(audio_buffer, format="OGG") as sound_file:
     #     sd.play(sound_file.read(dtype="float32"), sound_file.samplerate)
     #     sd.wait()
 
     # Load the audio file using pydub
-    audio = AudioSegment.from_file(audio_buffer, format="opus")
+    # audio = AudioSegment.from_file(audio_buffer, format="opus")
 
-    # Play the audio
-    play_obj = sa.play_buffer(
-        audio.raw_data,
-        num_channels=audio.channels,
-        bytes_per_sample=audio.sample_width,
-        sample_rate=audio.frame_rate,
-    )
+    # # Play the audio
+    # play_obj = sa.play_buffer(
+    #     audio.raw_data,
+    #     num_channels=audio.channels,
+    #     bytes_per_sample=audio.sample_width,
+    #     sample_rate=audio.frame_rate,
+    # )
 
-    # Wait for playback to finish before exiting
-    play_obj.wait_done()
+    # # Wait for playback to finish before exiting
+    # play_obj.wait_done()
 
     # Load audio using pydub
     # audio = AudioSegment.from_file(
