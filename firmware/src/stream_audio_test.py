@@ -27,8 +27,7 @@ import os
 # import sounddevice as sd
 # from pydub import AudioSegment
 # import simpleaudio as sa
-import av
-import numpy as np
+import pyogg
 import simpleaudio as sa
 import io
 
