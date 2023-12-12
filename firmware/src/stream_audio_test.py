@@ -47,7 +47,7 @@ def stream_and_play_audio():
     audio_buffer.seek(0)  # Rewind the buffer to the beginning
 
     # Load the audio file using pydub
-    audio = AudioSegment.from_file(audio_buffer, format="ogg")
+    audio = AudioSegment.from_file(audio_buffer, format="Opus")
 
     # Play the audio
     play_obj = sa.play_buffer(
