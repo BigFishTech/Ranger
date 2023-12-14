@@ -18,15 +18,15 @@ import time
 import threading
 
 import requests
-import subprocess
-import os
 
 from pydub import AudioSegment
 import simpleaudio as sa
 import io
 
 from src.board import Board
-from src.voice.audio import AudioFormat, play_wav, record_file, Recorder
+
+# from src.voice.audio import AudioFormat, play_wav, record_file, Recorder
+from src.voice.easy_audio import record_file, play_mp3
 
 
 def stream_and_play_audio():
@@ -60,32 +60,6 @@ def stream_and_play_audio():
     # Wait for playback to finish before exiting
     play_obj.wait_done()
 
-    # with sf.SoundFile(audio_buffer, format="OGG") as sound_file:
-    #     sd.play(sound_file.read(dtype="float32"), sound_file.samplerate)
-    #     sd.wait()
-
-    # Load the audio file using pydub
-    # audio = AudioSegment.from_file(audio_buffer, format="opus")
-
-    # # Play the audio
-    # play_obj = sa.play_buffer(
-    #     audio.raw_data,
-    #     num_channels=audio.channels,
-    #     bytes_per_sample=audio.sample_width,
-    #     sample_rate=audio.frame_rate,
-    # )
-
-    # # Wait for playback to finish before exiting
-    # play_obj.wait_done()
-
-    # Load audio using pydub
-    # audio = AudioSegment.from_file(
-    #     audio_buffer, format="opus"
-    # )  # or format="opus" based on your stream format
-
-    # # Play audio
-    # play(audio)
-
 
 def main():
     parser = argparse.ArgumentParser()
@@ -106,9 +80,11 @@ def main():
                 print("Recording: %.02f seconds [Press button to stop]" % duration)
                 time.sleep(0.5)
 
-        record_file(AudioFormat.CD, filename=args.filename, wait=wait, filetype="wav")
+        record_file(filename=args.filename, wait=wait)
 
-        stream_and_play_audio()
+        play_mp3(args.filename)
+
+        # stream_and_play_audio()
 
 
 if __name__ == "__main__":
