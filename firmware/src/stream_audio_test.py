@@ -63,7 +63,7 @@ def stream_and_play_audio():
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--filename", "-f", default="recording.wav")
+    parser.add_argument("--filename", "-f", default="recording.mp3")
     args = parser.parse_args()
 
     with Board() as board:
