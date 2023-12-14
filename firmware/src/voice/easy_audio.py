@@ -7,6 +7,7 @@ def ffRecord(filename=None, device="default"):
 
     cmd = [
         "ffmpeg",
+        "-y",  # Overwrite output files without asking
         "-f",
         "alsa",  # ALSA audio capture
         "-i",
@@ -15,8 +16,10 @@ def ffRecord(filename=None, device="default"):
         "2",  # Number of audio channels
         "-ar",
         "44100",  # Sample rate
-        "-ab",
-        "192000",  # Audio bit rate
+        "-b:a",
+        "192k",  # Audio bit rate
+        "-acodec",
+        "libmp3lame",  # Audio codec
         filename,
     ]
 
