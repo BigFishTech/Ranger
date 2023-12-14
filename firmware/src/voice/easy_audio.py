@@ -1,4 +1,5 @@
 import subprocess
+import logging
 
 
 def ffRecord(filename=None, device="default"):
@@ -31,7 +32,12 @@ def record_file_async(filename, device="default"):
         raise ValueError("Filename must be specified.")
 
     cmd = ffRecord(filename=filename, device=device)
-    return subprocess.Popen(cmd)
+    try:
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return process
+    except Exception as e:
+        logging.error(f"Failed to start recording: {e}")
+        raise
 
 
 def record_file(filename, wait, device="default"):
@@ -41,9 +47,18 @@ def record_file(filename, wait, device="default"):
     process = record_file_async(filename, device)
     try:
         wait()
+    except Exception as e:
+        logging.error(f"Error during recording wait function: {e}")
     finally:
-        process.terminate()
-        process.wait()
+        try:
+            process.terminate()
+            output, error = process.communicate()
+            logging.info(f"Recording output: {output.decode()}")
+            if error:
+                logging.error(f"Recording error: {error.decode()}")
+            process.wait()
+        except Exception as e:
+            logging.error(f"Error terminating recording process: {e}")
 
 
 def ffPlay(filename=None):
