@@ -17,7 +17,6 @@ def ffRecord(filename=None, device="default"):
         "44100",  # Sample rate
         "-ab",
         "192000",  # Audio bit rate
-        "-y",
         filename,
     ]
 
