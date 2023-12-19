@@ -1,40 +1,142 @@
-import { storage } from "firebase-admin";
 import functions = require("firebase-functions");
 import FormData from "form-data";
 import axios from "axios";
-import { PassThrough } from "stream";
-
-// import { Storage } from "@google-cloud/storage";
-// import fetch from "node-fetch";
-
-export const testFunctionHandler = async (req: functions.https.Request, resp: functions.Response<string>) => {
-    // const audioStorageLocation = req.body.audioStorageLocation as string;
-    // if (!audioStorageLocation) {
-    //     resp.status(400).send("No audio provided");
-    //     return;
-    // }
-    // // Get the transcription
-    // const transcription = await getTranscription(audioStorageLocation);
-    // // Get the GPT chat completion
-    // const gptChatCompletion = await getGptChatCompletion(transcription);
-    // // Get the voice completion
-    // const voiceCompletionUrl = await getVoiceCompletion(gptChatCompletion);
-    // // Send the response
-    // resp.send(voiceCompletionUrl);
+import busboy from "busboy";
+import { addMessage, getDeviceProfile, getRecentMessages } from "../utils/firestore_helper";
+import { ChatMessage, GPTMessage } from "../types/chat_message";
+import { Timestamp } from "firebase-admin/firestore";
 
 
-    const openAiUrl = "https://api.openai.com/v1/audio/speech";
+export const testFunctionHandler = functions.https.onRequest(async (req, resp) => {
+    const start1 = process.hrtime.bigint();
+
+    if (req.method !== "POST") {
+        resp.status(405).send("Method Not Allowed");
+        return;
+    }
+
+    const bb = busboy({ headers: req.headers });
+
+    let deviceId: string | undefined;
+    const chunks: Buffer[] = [];
+
+    await new Promise<void>((resolve, reject) => {
+        bb
+            .once("close", resolve)
+            .once("error", reject)
+            .on("file", (name, fileStream, info) => {
+                fileStream.on("data", (chunk) => {
+                    chunks.push(chunk);
+                });
+
+                fileStream.on("end", () => resolve());
+                fileStream.on("error", (error) => reject(error));
+            })
+            .on("field", (fieldname: string, val: string | undefined, _fieldnameTruncated: unknown, _valTruncated: unknown, _encoding: unknown, _mimetype: unknown) => {
+                if (fieldname === "deviceId") {
+                    deviceId = val;
+                }
+            })
+            .end(req.rawBody);
+    });
+
+    const end1 = process.hrtime.bigint();
+    const timeTaken1 = Number(end1 - start1) / 1000000;
+    functions.logger.log(`Audio chunks loaded: ${timeTaken1}ms`);
+    const start2 = process.hrtime.bigint();
+
+    const completeFileBuffer = Buffer.concat(chunks);
+
+    // If device ID is not found, return error
+    if (!deviceId) {
+        resp.status(400).send("No device ID found");
+        return;
+    }
+
+    // Get user ID from the device ID
+    const deviceProfile = await getDeviceProfile(deviceId);
+    const userId = deviceProfile?.userId;
+
+    // If user ID is not found, return error
+    if (!userId) {
+        resp.status(400).send("No user connected to device");
+        return;
+    }
+
+    // Query recent messages from Firestore
+    const recentMessages = await getRecentMessages(userId, 5);
+
+    const end2 = process.hrtime.bigint();
+    const timeTaken2 = Number(end2 - start2) / 1000000;
+    functions.logger.log(`Loaded chat history: ${timeTaken2}ms`);
+    const start3 = process.hrtime.bigint();
+
+    // Transcribe the audio
+    const transcription = await getTranscription(completeFileBuffer);
+
+    const end3 = process.hrtime.bigint();
+    const timeTaken3 = Number(end3 - start3) / 1000000;
+    functions.logger.log(`Transcribed audio: ${timeTaken3}ms`);
+    const start4 = process.hrtime.bigint();
+
+    // Save transcribed message to Firestore
+    const requestMessage: ChatMessage = {
+        createdAt: Timestamp.now(),
+        userGenerated: true,
+        text: transcription,
+    };
+    await addMessage(userId, requestMessage);
+
+    // Compile message history of type GPTMessage from recentMessages and transcription
+    const messageHistory: GPTMessage[] = recentMessages.reverse().map((message) => ({
+        role: message.userGenerated ? "user" : "assistant",
+        content: message.text,
+    }));
+
+    messageHistory.push({
+        role: "user",
+        content: transcription,
+    });
+
+    const end4 = process.hrtime.bigint();
+    const timeTaken4 = Number(end4 - start4) / 1000000;
+    functions.logger.log(`Added transcription to chat history: ${timeTaken4}ms`);
+    const start5 = process.hrtime.bigint();
+
+    // Get GPT chat completion
+    const gptChatCompletion = await getGptChatCompletion(messageHistory);
+
+    const end5 = process.hrtime.bigint();
+    const timeTaken5 = Number(end5 - start5) / 1000000;
+    functions.logger.log(`Chat completion generated: ${timeTaken5}ms`);
+    const start6 = process.hrtime.bigint();
+
+    // Save GPT chat completion to Firestore
+    const responseMessage: ChatMessage = {
+        createdAt: Timestamp.now(),
+        userGenerated: false,
+        text: gptChatCompletion,
+    };
+    await addMessage(userId, responseMessage);
+
+    const end6 = process.hrtime.bigint();
+    const timeTaken6 = Number(end6 - start6) / 1000000;
+    functions.logger.log(`Added message to chat history: ${timeTaken6}ms`);
+    const start7 = process.hrtime.bigint();
+
+    // Get TTS audio from OpenAI
+    const openAiUrlTTS = "https://api.openai.com/v1/audio/speech";
 
     // Prepare the request body for OpenAI TTS
     const requestBody = {
         model: "tts-1",
-        input: "Hello this is a test, I am streaming this large body of text, I hope it works. Please let me know how we are doing here. Hello this is a test, I am streaming this large body of text, I hope it works. Please let me know how we are doing here. Hello this is a test, I am streaming this large body of text, I hope it works. Please let me know how we are doing here. ",
+        input: gptChatCompletion,
         voice: "onyx",
-        // format: "opus",
+        format: "opus",
     };
 
     // Request to OpenAI TTS
-    const ttsResponse = await axios.post(openAiUrl, requestBody, {
+    const ttsResponse = await axios.post(openAiUrlTTS, requestBody, {
         headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
@@ -42,25 +144,21 @@ export const testFunctionHandler = async (req: functions.https.Request, resp: fu
         responseType: "stream",
     });
 
-    resp.setHeader("Content-Type", "audio/mpeg");
+    const end7 = process.hrtime.bigint();
+    const timeTaken7 = Number(end7 - start7) / 1000000;
+    functions.logger.log(`Speech request received: ${timeTaken7}ms`);
 
+    resp.setHeader("Content-Type", "audio/ogg");
     ttsResponse.data.pipe(resp);
-};
+});
 
-const getTranscription = async (storageAudioFileLocation: string): Promise<string> => {
-    // Initialize Firebase Storage
-    const storageFile = storage().bucket().file(storageAudioFileLocation);
 
-    // Download the file from Firebase Storage
-    const [fileBuffer] = await storageFile.download();
-
-    functions.logger.info("File downloaded successfully");
-
+const getTranscription = async (fileBuffer: Buffer): Promise<string> => {
     // Prepare the form data for OpenAI API request
     const formData = new FormData();
     formData.append("file", fileBuffer, {
-        filename: "audio.wav",
-        contentType: "audio/wav",
+        filename: "audio.mp3",
+        contentType: "audio/mpeg",
     });
     formData.append("model", "whisper-1");
 
@@ -78,22 +176,24 @@ const getTranscription = async (storageAudioFileLocation: string): Promise<strin
     return openAiResponse.data.text;
 };
 
-const getGptChatCompletion = async (userMessage: string): Promise<string> => {
+const getGptChatCompletion = async (messageHistory: GPTMessage[]): Promise<string> => {
     const openAiUrl = "https://api.openai.com/v1/chat/completions";
+
+    const messages = [
+        {
+            role: "system",
+            content: "You are the biggest bro of them all. Respond short and direct.",
+        },
+        ...messageHistory,
+    ];
+
+    functions.logger.log(messages);
 
     // Prepare the request body
     const requestBody = {
         model: "gpt-4-1106-preview",
-        messages: [
-            {
-                role: "system",
-                content: "You are the biggest bro of them all. Your bro level is over 9000.",
-            },
-            {
-                role: "user",
-                content: userMessage,
-            },
-        ],
+        temperature: 0.9,
+        messages: messages,
     };
 
     try {
@@ -109,48 +209,6 @@ const getGptChatCompletion = async (userMessage: string): Promise<string> => {
         return assistantMessage;
     } catch (error) {
         console.error("Error in GPT chat completion:", error);
-        return "There was an error processing your request.";
-    }
-};
-
-const getVoiceCompletion = async (message: string): Promise<string> => {
-    const openAiUrl = "https://api.openai.com/v1/audio/speech";
-
-    // Prepare the request body for OpenAI TTS
-    const requestBody = {
-        model: "tts-1",
-        input: message,
-        voice: "onyx",
-    };
-
-    try {
-        // Request to OpenAI TTS
-        const ttsResponse = await axios.post(openAiUrl, requestBody, {
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
-            },
-            responseType: "arraybuffer",
-        });
-
-        // Initialize Firebase Storage
-        const bucket = storage().bucket();
-        const fileName = "speech_response.mp3";
-        const file = bucket.file(fileName);
-
-        // Upload the audio file to Firebase Storage
-        await file.save(ttsResponse.data, {
-            metadata: { contentType: "audio/mpeg" },
-        });
-
-        // Make the file publicly accessible (if required)
-        await file.makePublic();
-
-        // Get the file"s public URL
-        const publicUrl = `https://storage.googleapis.com/ranger-8961d.appspot.com/${fileName}`;
-        return publicUrl;
-    } catch (error) {
-        console.error("Error in text to speech and upload:", error);
         return "There was an error processing your request.";
     }
 };

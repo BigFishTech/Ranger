@@ -9,3 +9,6 @@ typings/
 node_modules/
 
 .env
+
+# Default service account
+default_service_account.json
