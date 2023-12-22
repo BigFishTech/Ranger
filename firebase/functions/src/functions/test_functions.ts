@@ -157,8 +157,8 @@ const getTranscription = async (fileBuffer: Buffer): Promise<string> => {
     // Prepare the form data for OpenAI API request
     const formData = new FormData();
     formData.append("file", fileBuffer, {
-        filename: "audio.mp3",
-        contentType: "audio/mpeg",
+        filename: "audio.webm",
+        contentType: "audio/webm",
     });
     formData.append("model", "whisper-1");
 

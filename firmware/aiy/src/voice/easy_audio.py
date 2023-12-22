@@ -1,6 +1,9 @@
 import subprocess
 import logging
 
+from pydub import AudioSegment
+import simpleaudio as sa
+
 
 def ffRecord(filename=None, device="default"):
     if filename is None:
@@ -77,33 +80,49 @@ def record_file(filename, wait, device="default"):
             logging.error(f"Error terminating recording process: {e}")
 
 
-def ffPlay(filename=None):
-    cmd = ["ffplay", "-nodisp", "-autoexit", "-hide_banner"]
-    if filename is not None:
-        cmd.append(filename)
-    return cmd
+# def ffPlay(filename=None):
+#     cmd = ["ffplay", "-nodisp", "-autoexit", "-hide_banner"]
+#     if filename is not None:
+#         cmd.append(filename)
+#     return cmd
 
 
-def play_file_async(filename_or_data):
-    if isinstance(filename_or_data, (bytes, bytearray)):
-        cmd = ffPlay()
-        process = subprocess.Popen(cmd, stdin=subprocess.PIPE, bufsize=0)
+# def play_file_async(filename_or_data):
+#     if isinstance(filename_or_data, (bytes, bytearray)):
+#         cmd = ffPlay()
+#         process = subprocess.Popen(cmd, stdin=subprocess.PIPE, bufsize=0)
 
-        # Write the byte array to ffplay's stdin and close it to avoid hanging
-        try:
-            process.stdin.write(filename_or_data)
-            process.stdin.flush()
-        finally:
-            process.stdin.close()
-        return process
+#         # Write the byte array to ffplay's stdin and close it to avoid hanging
+#         try:
+#             process.stdin.write(filename_or_data)
+#             process.stdin.flush()
+#         finally:
+#             process.stdin.close()
+#         return process
 
-    if isinstance(filename_or_data, str):
-        cmd = ffPlay(filename=filename_or_data)
-        return subprocess.Popen(cmd)
+#     if isinstance(filename_or_data, str):
+#         cmd = ffPlay(filename=filename_or_data)
+#         return subprocess.Popen(cmd)
 
-    raise ValueError("Must be a filename or byte-like object")
+#     raise ValueError("Must be a filename or byte-like object")
 
 
-def play_file(filename_or_data):
-    process = play_file_async(filename_or_data)
-    process.wait()
+# def play_file(filename_or_data):
+#     process = play_file_async(filename_or_data)
+#     process.wait()
+
+
+def play_audio(audio_buffer):
+    # Load the audio file using pydub
+    audio = AudioSegment.from_file(audio_buffer)
+
+    # Play the audio
+    play_obj = sa.play_buffer(
+        audio.raw_data,
+        num_channels=audio.channels,
+        bytes_per_sample=audio.sample_width,
+        sample_rate=audio.frame_rate,
+    )
+
+    # Wait for playback to finish before exiting
+    play_obj.wait_done()

@@ -23,7 +23,7 @@ from pydub import AudioSegment
 import simpleaudio as sa
 import io
 
-from src.voice.easy_audio import record_file, play_file
+from src.voice.easy_audio import record_file, play_audio
 
 
 def stream_and_play_audio(filename):
@@ -57,19 +57,7 @@ def stream_and_play_audio(filename):
             audio_buffer.write(chunk)
         audio_buffer.seek(0)  # Rewind the buffer to the beginning
 
-        # Load the audio file using pydub
-        audio = AudioSegment.from_file(audio_buffer)
-
-        # Play the audio
-        play_obj = sa.play_buffer(
-            audio.raw_data,
-            num_channels=audio.channels,
-            bytes_per_sample=audio.sample_width,
-            sample_rate=audio.frame_rate,
-        )
-
-        # Wait for playback to finish before exiting
-        play_obj.wait_done()
+        play_audio(audio_buffer)
 
 
 def main():
