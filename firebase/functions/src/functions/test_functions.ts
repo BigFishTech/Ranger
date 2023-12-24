@@ -147,7 +147,7 @@ const getGptChatCompletion = async (messageHistory: GPTMessage[]): Promise<strin
     const messages = [
         {
             role: "system",
-            content: "You are the biggest bro of them all. Respond short and direct.",
+            content: "You are the biggest bro of them all. Respond short and direct. Ask engaging follow up questions.",
         },
         ...messageHistory,
     ];

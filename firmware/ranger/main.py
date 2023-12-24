@@ -28,6 +28,9 @@ and it allows us to record directly into an efficient format for sending to the 
 • Record directly into a webm file. This is the most efficient format for sending to the
 cloud function.
 
+• Recieve opus audio data from the cloud function. This is the most efficient format for
+sending audio data over the internet, and it is supported by open ai tts.
+
 • Button debouncing. This is important because the user may spam the button.
 
 Run the program with `python main.py`.
