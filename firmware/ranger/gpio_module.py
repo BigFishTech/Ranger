@@ -24,11 +24,12 @@
 
 
 import RPi.GPIO as GPIO
-import board
+
+# import board
 
 
 # Configuration for GPIO pin
-BUTTON_PIN = board.D17  # Change this to the GPIO pin you are using for the button
+BUTTON_PIN = 17  # Change this to the GPIO pin you are using for the button
 
 
 def init_gpio():
