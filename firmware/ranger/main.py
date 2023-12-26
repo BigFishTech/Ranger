@@ -1,5 +1,6 @@
 import asyncio
-import keyboard
+
+# import keyboard
 import time
 import subprocess
 
