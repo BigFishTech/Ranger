@@ -74,6 +74,7 @@ class ButtonHandler:
                 # ],
                 [
                     "ffmpeg",
+                    "-y",
                     "-f",
                     "alsa",
                     "-i",
