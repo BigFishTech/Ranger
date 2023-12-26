@@ -152,7 +152,7 @@ class ButtonHandler:
 
 
 def button_pressed(handler):
-    return lambda: handler.start_new_task()
+    return lambda channel: handler.start_new_task()
 
 
 async def main():

@@ -25,10 +25,6 @@
 
 import RPi.GPIO as GPIO
 
-# import board
-
-
-# Configuration for GPIO pin
 BUTTON_PIN = 17  # Change this to the GPIO pin you are using for the button
 
 
