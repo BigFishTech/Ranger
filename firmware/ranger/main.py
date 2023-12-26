@@ -112,6 +112,7 @@ class ButtonHandler:
             buffer_data = network_module.send_voice_chat("output.webm")
             print("Play audio")
             # Play the audio
+
             audio_module.play_audio(buffer_data)
 
         print("Second click task completed.")
