@@ -5,6 +5,7 @@ import subprocess
 
 import network_module
 import audio_module
+import gpio_module
 
 """
 This is the main module for the Ranger program. It runs forever, and handles the main
@@ -57,17 +58,31 @@ class ButtonHandler:
             self.running_first_task = True
             print("First click task running - Starting recording.")
             self.recording_process = subprocess.Popen(
+                # [
+                #     "ffmpeg",
+                #     "-y",
+                #     "-f",
+                #     "avfoundation",
+                #     "-i",
+                #     ":2",
+                #     "-c:a",
+                #     "libvorbis",
+                #     "-f",
+                #     "webm",
+                #     "output.webm",
+                # ],
                 [
                     "ffmpeg",
-                    "-y",
                     "-f",
-                    "avfoundation",
+                    "alsa",
                     "-i",
-                    ":2",
-                    "-c:a",
+                    "plughw:3,0",
+                    "-acodec",
                     "libvorbis",
-                    "-f",
-                    "webm",
+                    "-ar",
+                    "44100",
+                    "-ac",
+                    "2",
                     "output.webm",
                 ],
                 stdin=subprocess.PIPE,
@@ -143,9 +158,12 @@ async def main():
     loop = asyncio.get_running_loop()
     handler = ButtonHandler(loop)
 
-    # Typically this will be a GPIO button press, but for testing we use the spacebar
-    keyboard.add_hotkey("space", button_pressed(handler))
-    await asyncio.Future()
+    try:
+        gpio_module.init_gpio()  # Initialize GPIO module
+        gpio_module.set_button_callback(button_pressed(handler))
+        await asyncio.Future()
+    finally:
+        gpio_module.cleanup_gpio()
 
 
 if __name__ == "__main__":
