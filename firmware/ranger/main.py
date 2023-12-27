@@ -95,7 +95,7 @@ class ButtonHandler:
                     # "-d", "0",       # Duration set to 0 for indefinite recording
                     # "-c", "2",       # 2 channels (stereo)
                     # "-r", "44100",   # Sampling rate 44100 Hz
-                    "-q",  # Suppress standard output
+                    # "-q",  # Suppress standard output
                     "--overwrite",  # Overwrite the file if it exists
                     "output.wav",  # Output file
                 ],
