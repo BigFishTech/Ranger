@@ -72,20 +72,32 @@ class ButtonHandler:
                 #     "webm",
                 #     "output.webm",
                 # ],
+                # [
+                #     "ffmpeg",
+                #     "-y",
+                #     "-f",
+                #     "alsa",
+                #     "-i",
+                #     "plughw:3,0",
+                #     # "-acodec",
+                #     # "libvorbis",
+                #     # "-ar",
+                #     # "44100",
+                #     "-ac",
+                #     "2",
+                #     "output.webm",
+                # ],
                 [
-                    "ffmpeg",
-                    "-y",
-                    "-f",
-                    "alsa",
-                    "-i",
-                    "plughw:3,0",
-                    "-acodec",
-                    "libvorbis",
-                    "-ar",
-                    "44100",
-                    "-ac",
-                    "2",
-                    "output.webm",
+                    "arecord",
+                    "-Dplughw:3,0",  # Specify the audio device
+                    # "-f", "cd",      # CD quality audio
+                    # "-t", "wav",     # File type WAV
+                    # "-d", "0",       # Duration set to 0 for indefinite recording
+                    # "-c", "2",       # 2 channels (stereo)
+                    # "-r", "44100",   # Sampling rate 44100 Hz
+                    "-q",  # Suppress standard output
+                    "--overwrite",  # Overwrite the file if it exists
+                    "output.wav",  # Output file
                 ],
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
@@ -102,14 +114,23 @@ class ButtonHandler:
         print("Second click task running")
         if self.recording_process:
             print("Stopping recording.")
-            self.recording_process.stdin.write(b"q")
-            self.recording_process.stdin.flush()
+            # self.recording_process.stdin.write(b"q")
+            # self.recording_process.stdin.flush()
 
-            self.recording_process.wait()
+            # self.recording_process.wait()
+            self.recording_process.terminate()  # Terminate the recording process
+
+            try:
+                self.recording_process.wait(
+                    timeout=5
+                )  # Wait for the process to terminate
+            except subprocess.TimeoutExpired:
+                self.recording_process.kill()
+
             self.recording_process = None
 
             print("Sending audio to cloud.")
-            buffer_data = network_module.send_voice_chat("output.webm")
+            buffer_data = network_module.send_voice_chat("output.wav")
             print("Play audio")
             # Play the audio
 
