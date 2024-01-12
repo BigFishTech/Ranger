@@ -118,7 +118,7 @@ from collections import namedtuple
 
 from RPi import GPIO
 
-from src.leds import Color, Leds, Pattern
+from leds import Color, Leds, Pattern
 
 
 class Button:
