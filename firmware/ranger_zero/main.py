@@ -6,7 +6,10 @@ import subprocess
 
 import network_module
 import audio_module
-import gpio_module
+
+# import gpio_module
+from gpio_module import Board
+
 
 """
 This is the main module for the Ranger program. It runs forever, and handles the main
@@ -182,11 +185,11 @@ async def main():
     handler = ButtonHandler(loop)
 
     try:
-        gpio_module.init_gpio()  # Initialize GPIO module
-        gpio_module.set_button_callback(button_pressed(handler))
+        board = Board()
+        board.button.when_pressed = button_pressed(handler)
         await asyncio.Future()
     finally:
-        gpio_module.cleanup_gpio()
+        board.close()
 
 
 if __name__ == "__main__":
