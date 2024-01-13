@@ -90,21 +90,9 @@ class ButtonHandler:
                 #     "2",
                 #     "output.webm",
                 # ],
-                # [
-                #     "arecord",
-                #     "-Dplughw:3,0",  # Specify the audio device
-                #     # "-f", "cd",      # CD quality audio
-                #     # "-t", "wav",     # File type WAV
-                #     # "-d", "0",       # Duration set to 0 for indefinite recording
-                #     # "-c", "2",       # 2 channels (stereo)
-                #     # "-r", "44100",   # Sampling rate 44100 Hz
-                #     # "-q",  # Suppress standard output
-                #     # "--overwrite",  # Overwrite the file if it exists
-                #     "output.wav",  # Output file
-                # ],
                 stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                # stdout=subprocess.PIPE,
+                # stderr=subprocess.PIPE,
                 bufsize=0,
             )
 
