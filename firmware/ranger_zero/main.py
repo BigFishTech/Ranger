@@ -62,19 +62,19 @@ class ButtonHandler:
             self.running_first_task = True
             print("First click task running - Starting recording.")
             self.recording_process = subprocess.Popen(
-                [
-                    "ffmpeg",
-                    "-y",
-                    "-f",
-                    "avfoundation",
-                    "-i",
-                    ":2",
-                    "-c:a",
-                    "libvorbis",
-                    "-f",
-                    "webm",
-                    "output.webm",
-                ],
+                # [
+                #     "ffmpeg",
+                #     "-y",
+                #     "-f",
+                #     "avfoundation",
+                #     "-i",
+                #     ":2",
+                #     "-c:a",
+                #     "libvorbis",
+                #     "-f",
+                #     "webm",
+                #     "output.webm",
+                # ],
                 [
                     "ffmpeg",
                     "-y",
