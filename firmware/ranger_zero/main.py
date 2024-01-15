@@ -144,11 +144,11 @@ class ButtonHandler:
             self.recording_process = None
 
             print("Sending audio to cloud.")
-            buffer_data = network_module.send_voice_chat("output.wav")
+            network_module.send_voice_chat("output.wav")
             print("Play audio")
             # Play the audio
 
-            audio_module.play_audio(buffer_data)
+            audio_module.play_audio_from_file("output.flac")
 
         print("Second click task completed.")
         self.running_second_task = False

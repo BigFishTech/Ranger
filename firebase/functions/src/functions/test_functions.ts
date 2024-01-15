@@ -101,7 +101,7 @@ export const testFunctionHandler = functions.https.onRequest(async (req, resp) =
         model: "tts-1",
         input: gptChatCompletion,
         voice: "onyx",
-        format: "opus",
+        format: "flac",
     };
 
     // Request to OpenAI TTS
@@ -113,7 +113,7 @@ export const testFunctionHandler = functions.https.onRequest(async (req, resp) =
         responseType: "stream",
     });
 
-    resp.setHeader("Content-Type", "audio/ogg");
+    resp.setHeader("Content-Type", "audio/flac");
     ttsResponse.data.pipe(resp);
 });
 
