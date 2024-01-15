@@ -62,6 +62,16 @@ class ButtonHandler:
             self.running_first_task = True
             print("First click task running - Starting recording.")
             self.recording_process = subprocess.Popen(
+                [
+                    "arecord",
+                    "-f",
+                    "U8",
+                    "-r",
+                    "8000",
+                    "-c",
+                    "1",
+                    "output.wav",
+                ],
                 # [
                 #     "ffmpeg",
                 #     "-y",
@@ -75,35 +85,35 @@ class ButtonHandler:
                 #     "webm",
                 #     "output.webm",
                 # ],
-                [
-                    "ffmpeg",
-                    "-y",
-                    "-f",
-                    "alsa",
-                    "-i",
-                    "hw:0,0",
-                    # "plughw:3,0",
-                    # "-acodec",
-                    # "libvorbis",
-                    # "-ar",
-                    # "44100",
-                    "-b:a",
-                    "24k",
-                    "-ac",
-                    "1",
-                    "-ar",
-                    "16000",
-                    "-acodec",
-                    "libopus",
-                    "-vn",
-                    "-threads",
-                    "1",
-                    # "-c:a",
-                    # "libvorbis",
-                    "-f",
-                    "webm",
-                    "output.webm",
-                ],
+                # [
+                #     "ffmpeg",
+                #     "-y",
+                #     "-f",
+                #     "alsa",
+                #     "-i",
+                #     "hw:0,0",
+                #     # "plughw:3,0",
+                #     # "-acodec",
+                #     # "libvorbis",
+                #     # "-ar",
+                #     # "44100",
+                #     "-b:a",
+                #     "24k",
+                #     "-ac",
+                #     "1",
+                #     "-ar",
+                #     "16000",
+                #     "-acodec",
+                #     "libopus",
+                #     "-vn",
+                #     "-threads",
+                #     "1",
+                #     # "-c:a",
+                #     # "libvorbis",
+                #     "-f",
+                #     "webm",
+                #     "output.webm",
+                # ],
                 stdin=subprocess.PIPE,
                 # stdout=subprocess.PIPE,
                 # stderr=subprocess.PIPE,
@@ -119,22 +129,22 @@ class ButtonHandler:
         print("Second click task running")
         if self.recording_process:
             print("Stopping recording.")
-            self.recording_process.stdin.write(b"q")
-            self.recording_process.stdin.flush()
+            # self.recording_process.stdin.write(b"q")
+            # self.recording_process.stdin.flush()
 
-            self.recording_process.wait()
-            # self.recording_process.terminate()  # Terminate the recording process
-            # try:
-            #     self.recording_process.wait(
-            #         timeout=5
-            #     )  # Wait for the process to terminate
-            # except subprocess.TimeoutExpired:
-            #     self.recording_process.kill()
+            # self.recording_process.wait()
+            self.recording_process.terminate()  # Terminate the recording process
+            try:
+                self.recording_process.wait(
+                    timeout=5
+                )  # Wait for the process to terminate
+            except subprocess.TimeoutExpired:
+                self.recording_process.kill()
 
             self.recording_process = None
 
             print("Sending audio to cloud.")
-            buffer_data = network_module.send_voice_chat("output.webm")
+            buffer_data = network_module.send_voice_chat("output.wav")
             print("Play audio")
             # Play the audio
 

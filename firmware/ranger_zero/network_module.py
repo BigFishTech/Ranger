@@ -12,7 +12,7 @@ def send_voice_chat(audio_file_path):
     try:
         with open(audio_file_path, "rb") as f:
             # Send POST request with the file
-            files = {"file": (audio_file_path, f, "audio/webm")}
+            files = {"file": (audio_file_path, f, "audio/wav")}
             data = {"deviceId": DEVICE_ID}
             response = requests.post(
                 SEND_VOICE_CHAT_URL, files=files, data=data, stream=True

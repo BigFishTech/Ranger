@@ -122,8 +122,8 @@ const getTranscription = async (fileBuffer: Buffer): Promise<string> => {
     // Prepare the form data for OpenAI API request
     const formData = new FormData();
     formData.append("file", fileBuffer, {
-        filename: "audio.webm",
-        contentType: "audio/webm",
+        filename: "audio.wav",
+        contentType: "audio/wav",
     });
     // formData.append("file", fileBuffer, {
     //     filename: "audio.wav",
