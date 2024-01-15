@@ -45,6 +45,6 @@ def play_audio_from_file(file_name):
     """
     try:
         # Use the aplay command to play the audio file
-        subprocess.run(["aplay", file_name])
+        subprocess.run(["mpg321", file_name])
     except Exception as e:
         print(f"An error occurred while playing audio: {e}")

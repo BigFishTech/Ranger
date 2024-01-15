@@ -9,7 +9,7 @@ def send_voice_chat(audio_file_path):
     """
     Sends the audio file to the cloud function and saves the response as a FLAC file.
     """
-    output_flac_file_path = "output.flac"
+    output_flac_file_path = "output.mp3"
     try:
         with open(audio_file_path, "rb") as f:
             # Send POST request with the file
