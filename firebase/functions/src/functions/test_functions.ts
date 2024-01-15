@@ -160,7 +160,7 @@ const getGptChatCompletion = async (messageHistory: GPTMessage[]): Promise<strin
 
     // Prepare the request body
     const requestBody = {
-        model: "gpt-4-1106-preview",
+        model: "gpt-3.5-turbo",
         temperature: 0.9,
         messages: messages,
     };
