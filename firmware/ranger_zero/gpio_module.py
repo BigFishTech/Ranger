@@ -372,7 +372,7 @@ else:
     Led = SingleColorLed
 
 
-BUTTON_PIN = 23
+BUTTON_PIN = 17
 LED_PIN = 25
 
 

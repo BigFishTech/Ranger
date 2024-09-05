@@ -148,7 +148,7 @@ class ButtonHandler:
             print("Play audio")
             # Play the audio
 
-            audio_module.play_audio_from_file("output.mp3")
+            audio_module.play_audio_from_file("./output.mp3")
 
         print("Second click task completed.")
         self.running_second_task = False
